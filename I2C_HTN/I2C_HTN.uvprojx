@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\Inc;.\Src</IncludePath>
+              <IncludePath>.\Core\Inc;.\Core\Src</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -385,17 +385,17 @@
             <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Src\main.c</FilePath>
+              <FilePath>.\Core\Src\main.c</FilePath>
             </File>
             <File>
               <FileName>gpio.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Src\gpio.c</FilePath>
+              <FilePath>.\Core\Src\gpio.c</FilePath>
             </File>
             <File>
               <FileName>rcc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Src\rcc.c</FilePath>
+              <FilePath>.\Core\Src\rcc.c</FilePath>
             </File>
           </Files>
         </Group>
