@@ -1,0 +1,12 @@
+# Keil build output
+Objects/
+Listings/
+*.o
+*.axf
+
+# Keil user-specific settings
+*.uvguix.*
+
+# Temporary files
+*.bak
+*.tmp
