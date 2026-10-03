@@ -22,4 +22,7 @@ typedef enum
 void OLED_Clear(void);
 void OLED_Fill(OLED_Color color);
 void OLED_DrawPixel(int16_t x, int16_t y, OLED_Color color);
+uint8_t OLED_GetPixel(int16_t x, int16_t y);
+// Lấy con trỏ chỉ đọc tới bộ đệm ảnh
+const uint8_t *OLED_GetFramebuffer(void);
 #endif

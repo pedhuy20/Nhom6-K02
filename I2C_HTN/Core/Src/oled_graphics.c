@@ -3,6 +3,12 @@
 //Bộ đệm ảnh
 static uint8_t OLED_Framebuffer[OLED_BUFFER_SIZE];
 
+// Lấy con trỏ chỉ đọc tới bộ đệm
+const uint8_t *OLED_GetFramebuffer(void)
+{
+    return OLED_Framebuffer;
+}
+
 //Xóa toàn bộ màn hình về màu đen
 void OLED_Clear(void)
 {
