@@ -49,7 +49,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>I2C_HTS</OutputName>
+          <OutputName>I2C_HTN</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\Inc;.\Src</IncludePath>
+              <IncludePath>..\Core\Inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -385,11 +385,6 @@
           <GroupName>Application</GroupName>
           <Files>
             <File>
-              <FileName>gpio.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\gpio.c</FilePath>
-            </File>
-            <File>
               <FileName>i2c_driver.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Core\Src\i2c_driver.c</FilePath>
@@ -398,11 +393,6 @@
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Core\Src\main.c</FilePath>
-            </File>
-            <File>
-              <FileName>rcc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\rcc.c</FilePath>
             </File>
           </Files>
         </Group>
