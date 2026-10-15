@@ -10,6 +10,8 @@ volatile uint8_t g_oled_rect_ok;
 volatile uint8_t g_oled_fillrect_ok;
 volatile uint8_t g_oled_char_ok = 0U;
 volatile uint8_t g_oled_text_ok = 0U;
+volatile uint8_t g_oled_polyline_ok;
+volatile uint8_t g_oled_graph_ok;
 
 // Ảnh chữ A của font 5x7: năm byte ở page đầu
 static const uint8_t expected_a5[5] = {
@@ -405,6 +407,90 @@ uint8_t OLED_TestDrawText(void)
     return 1U;
 }
 
+// Kiểm tra nối ba điểm và xóa đường vừa vẽ
+uint8_t OLED_TestDrawPolyline(void)
+{
+    const OLED_Point points[] = {
+        {0, 0}, {3, 0}, {3, 3}
+    };
+
+    const uint8_t expected[] = {
+        0x01U, 0x01U, 0x01U, 0x0FU
+    };
+
+    OLED_Clear();
+
+    // Nối ba điểm bằng màu trắng
+    OLED_DrawPolyline(points, 3U, OLED_WHITE);
+
+    if (BufferMatches(expected, sizeof(expected)) == 0U)
+    {
+        return 0U;
+    }
+
+    // Vẽ lại bằng màu đen để xóa
+    OLED_DrawPolyline(points, 3U, OLED_BLACK);
+
+    return BufferIs(0x00U);
+}
+
+// Kiểm tra đổi giá trị thành tọa độ đồ thị
+uint8_t OLED_TestDrawGraph(void)
+{
+    const int16_t values[] = {0, 3, 6};
+    const int16_t clipped[] = {-10, 3, 10};
+    const int16_t single[] = {3};
+
+    // Ba điểm (0,6), (3,3), (6,0), cùng hai trục
+    const uint8_t expected[] = {
+        0x7FU, 0x60U, 0x50U, 0x48U,
+        0x44U, 0x42U, 0x41U
+    };
+
+    // Một điểm ở giữa: (3,3), cùng hai trục
+    const uint8_t expected_single[] = {
+        0x7FU, 0x40U, 0x40U, 0x48U,
+        0x40U, 0x40U, 0x40U
+    };
+
+    // Kiểm tra ba mẫu trong thang đo
+    OLED_Clear();
+    OLED_DrawGraph(0, 0, 6, 6,
+                   values, 3U, 0, 6, OLED_WHITE);
+
+    if (BufferMatches(expected, sizeof(expected)) == 0U)
+    {
+        return 0U;
+    }
+
+    // Giá trị ngoài thang đo được giới hạn về hai đầu
+    OLED_Clear();
+    OLED_DrawGraph(0, 0, 6, 6,
+                   clipped, 3U, 0, 6, OLED_WHITE);
+
+    if (BufferMatches(expected, sizeof(expected)) == 0U)
+    {
+        return 0U;
+    }
+
+    // Kiểm tra trường hợp chỉ có một mẫu
+    OLED_Clear();
+    OLED_DrawGraph(0, 0, 6, 6,
+                   single, 1U, 0, 6, OLED_WHITE);
+
+    if (BufferMatches(expected_single,
+                      sizeof(expected_single)) == 0U)
+    {
+        return 0U;
+    }
+
+    // Thang đo bằng nhau: không vẽ, tránh chia cho 0
+    OLED_Clear();
+    OLED_DrawGraph(0, 0, 6, 6,
+                   values, 3U, 6, 6, OLED_WHITE);
+
+    return BufferIs(0x00U);
+}
 
 // Chạy toàn bộ bài kiểm tra
 void OLED_TestAll(void)
@@ -417,4 +503,6 @@ void OLED_TestAll(void)
     g_oled_fillrect_ok = OLED_TestFillRect();
     g_oled_char_ok     = OLED_TestDrawChar();
     g_oled_text_ok     = OLED_TestDrawText();
+    g_oled_polyline_ok = OLED_TestDrawPolyline();
+    g_oled_graph_ok    = OLED_TestDrawGraph();
 }
