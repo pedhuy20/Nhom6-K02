@@ -10,7 +10,7 @@
       <TargetName>Target 1</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>6220000::V6.22::ARMCLANG</pCCUsed>
+      <pCCUsed>6240000::V6.24::ARMCLANG</pCCUsed>
       <uAC6>1</uAC6>
       <TargetOption>
         <TargetCommonOption>
@@ -49,7 +49,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>I2C_HTS</OutputName>
+          <OutputName>I2C_HTN</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\Core\Inc;.\Core\Src</IncludePath>
+              <IncludePath>..\Core\Inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -385,39 +385,36 @@
           <GroupName>Application</GroupName>
           <Files>
             <File>
+              <FileName>i2c_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\i2c_driver.c</FilePath>
+            </File>
+            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Core\Src\main.c</FilePath>
-            </File>
-            <File>
-              <FileName>gpio.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Core\Src\gpio.c</FilePath>
-            </File>
-            <File>
-              <FileName>rcc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Core\Src\rcc.c</FilePath>
-            </File>
-            <File>
-              <FileName>oled_tests.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Core\Src\oled_tests.c</FilePath>
-            </File>
-            <File>
-              <FileName>oled_graphics.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Core\Src\oled_graphics.c</FilePath>
-            </File>
-            <File>
-              <FileName>oled_fonts.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Core\Src\oled_fonts.c</FilePath>
+              <FilePath>..\Core\Src\main.c</FilePath>
             </File>
           </Files>
         </Group>
         <Group>
           <GroupName>Drivers</GroupName>
+          <Files>
+            <File>
+              <FileName>i2c_driver.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\Inc\i2c_driver.h</FilePath>
+            </File>
+            <File>
+              <FileName>gpio.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\Inc\gpio.h</FilePath>
+            </File>
+            <File>
+              <FileName>rcc.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\Inc\rcc.h</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>::CMSIS</GroupName>
