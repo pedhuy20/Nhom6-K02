@@ -1194,7 +1194,7 @@ HAL_StatusTypeDef HAL_I2C_Master_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevA
   */
 HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout)
 {
-  __IO uint32_t count = 0U;
+  uint32_t primask;
 
   /* Init tickstart for timeout management*/
   uint32_t tickstart = HAL_GetTick();
@@ -1351,119 +1351,48 @@ HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAd
           hi2c->XferSize--;
           hi2c->XferCount--;
         }
-        /* 3 Last bytes */
+        /* SV4: AN2824/ES096 polling sequence for the last three bytes.
+         * Keep STOP and N-1 read adjacent; wait RXNE before reading N.
+         * No tick-based wait is performed while interrupts are masked.
+         */
         else
         {
-          /* Wait until BTF flag is set */
           if (I2C_WaitOnFlagUntilTimeout(hi2c, I2C_FLAG_BTF, RESET, Timeout, tickstart) != HAL_OK)
           {
             return HAL_ERROR;
           }
 
-          /* Disable Acknowledge */
-          CLEAR_BIT(hi2c->Instance->CR1, I2C_CR1_ACK);
-
-          /* Disable all active IRQs around ADDR clearing and STOP programming because the EV6_3
-             software sequence must complete before the current byte end of transfer */
+          primask = __get_PRIMASK();
           __disable_irq();
-
-          /* Read data from DR */
-          *hi2c->pBuffPtr = (uint8_t)hi2c->Instance->DR;
-
-          /* Increment Buffer pointer */
-          hi2c->pBuffPtr++;
-
-          /* Update counter */
-          hi2c->XferSize--;
-          hi2c->XferCount--;
-
-          /* Wait until BTF flag is set */
-          count = I2C_TIMEOUT_FLAG * (SystemCoreClock / 25U / 1000U);
-          do
-          {
-            count--;
-            if (count == 0U)
-            {
-              hi2c->PreviousState       = I2C_STATE_NONE;
-              hi2c->State               = HAL_I2C_STATE_READY;
-              hi2c->Mode                = HAL_I2C_MODE_NONE;
-              hi2c->ErrorCode           |= HAL_I2C_ERROR_TIMEOUT;
-
-              /* Re-enable IRQs */
-              __enable_irq();
-
-              /* Process Unlocked */
-              __HAL_UNLOCK(hi2c);
-
-              return HAL_ERROR;
-            }
-          }
-          while (__HAL_I2C_GET_FLAG(hi2c, I2C_FLAG_BTF) == RESET);
-
-          /* Generate Stop */
+          CLEAR_BIT(hi2c->Instance->CR1, I2C_CR1_ACK);
+          *hi2c->pBuffPtr++ = (uint8_t)hi2c->Instance->DR; /* N-2 */
           SET_BIT(hi2c->Instance->CR1, I2C_CR1_STOP);
+          *hi2c->pBuffPtr++ = (uint8_t)hi2c->Instance->DR; /* N-1 */
+          __set_PRIMASK(primask);
+          hi2c->XferSize -= 2U;
+          hi2c->XferCount -= 2U;
 
-          /* Read data from DR */
-          *hi2c->pBuffPtr = (uint8_t)hi2c->Instance->DR;
-
-          /* Increment Buffer pointer */
-          hi2c->pBuffPtr++;
-
-          /* Update counter */
-          hi2c->XferSize--;
-          hi2c->XferCount--;
-
-          /* Re-enable IRQs */
-          __enable_irq();
-
-          /* Read data from DR */
-          *hi2c->pBuffPtr = (uint8_t)hi2c->Instance->DR;
-
-          /* Increment Buffer pointer */
-          hi2c->pBuffPtr++;
-
-          /* Update counter */
+          if (I2C_WaitOnRXNEFlagUntilTimeout(hi2c, Timeout, tickstart) != HAL_OK)
+          {
+            return HAL_ERROR;
+          }
+          *hi2c->pBuffPtr++ = (uint8_t)hi2c->Instance->DR; /* N */
           hi2c->XferSize--;
           hi2c->XferCount--;
         }
       }
       else
       {
-        /* Wait until RXNE flag is set */
-        if (I2C_WaitOnRXNEFlagUntilTimeout(hi2c, Timeout, tickstart) != HAL_OK)
+        /* BTF stretches SCL if the 8 MHz CPU is delayed. Consume one
+         * byte at a time so the final-three-byte branch is never skipped.
+         */
+        if (I2C_WaitOnFlagUntilTimeout(hi2c, I2C_FLAG_BTF, RESET, Timeout, tickstart) != HAL_OK)
         {
           return HAL_ERROR;
         }
-
-        /* Read data from DR */
-        *hi2c->pBuffPtr = (uint8_t)hi2c->Instance->DR;
-
-        /* Increment Buffer pointer */
-        hi2c->pBuffPtr++;
-
-        /* Update counter */
+        *hi2c->pBuffPtr++ = (uint8_t)hi2c->Instance->DR;
         hi2c->XferSize--;
         hi2c->XferCount--;
-
-        if (__HAL_I2C_GET_FLAG(hi2c, I2C_FLAG_BTF) == SET)
-        {
-
-          if (hi2c->XferSize == 3U)
-          {
-            /* Disable Acknowledge */
-            CLEAR_BIT(hi2c->Instance->CR1, I2C_CR1_ACK);
-          }
-
-          /* Read data from DR */
-          *hi2c->pBuffPtr = (uint8_t)hi2c->Instance->DR;
-
-          /* Increment Buffer pointer */
-          hi2c->pBuffPtr++;
-
-          /* Update counter */
-          hi2c->XferSize--;
-          hi2c->XferCount--;
-        }
       }
     }
 

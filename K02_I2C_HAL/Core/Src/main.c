@@ -18,9 +18,10 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "stm32f1xx_hal.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "sv4_app.h"
 
 /* USER CODE END Includes */
 
@@ -43,10 +44,6 @@
 I2C_HandleTypeDef hi2c1;
 
 /* USER CODE BEGIN PV */
-uint8_t g_found_count = 0;
-uint8_t g_last_addr = 0;
-uint8_t g_scan_done = 0;
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -93,19 +90,7 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-	for (uint8_t addr = 1; addr < 128; addr++)
-{
-    if (HAL_I2C_IsDeviceReady(&hi2c1,
-                              addr << 1,
-                              3,
-                              100) == HAL_OK)
-    {
-        g_found_count++;
-        g_last_addr = addr;
-    }
-}
-
-g_scan_done = 1;
+  SV4_Init(&hi2c1);
 
   /* USER CODE END 2 */
 
@@ -116,6 +101,7 @@ g_scan_done = 1;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    SV4_Task();
   }
   /* USER CODE END 3 */
 }
@@ -197,13 +183,20 @@ static void MX_I2C1_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
 
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+
+  /*Configure GPIO pin : PB0 (PAGE_BTN) */
+  GPIO_InitStruct.Pin = PAGE_BTN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(PAGE_BTN_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 

@@ -81,7 +81,7 @@
           </BeforeMake>
           <AfterMake>
             <RunUserProg1>0</RunUserProg1>
-            <RunUserProg2>0</RunUserProg2>
+            <RunUserProg2>1</RunUserProg2>
             <UserProg1Name></UserProg1Name>
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xB</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include;../App/Inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -481,6 +481,46 @@
               <FileName>system_stm32f1xx.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/system_stm32f1xx.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Application/SV4_HAL</GroupName>
+          <Files>
+            <File>
+              <FileName>sv4_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../App/Src/sv4_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>i2c_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../App/Src/i2c_driver.c</FilePath>
+            </File>
+            <File>
+              <FileName>sht30.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../App/Src/sht30.c</FilePath>
+            </File>
+            <File>
+              <FileName>bh1750.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../App/Src/bh1750.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled_ssd1306.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../App/Src/oled_ssd1306.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled_graphics.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../App/Src/oled_graphics.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled_fonts.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../App/Src/oled_fonts.c</FilePath>
             </File>
           </Files>
         </Group>

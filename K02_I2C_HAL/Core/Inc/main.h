@@ -59,6 +59,8 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 
 /* USER CODE BEGIN Private defines */
+#define PAGE_BTN_Pin GPIO_PIN_0
+#define PAGE_BTN_GPIO_Port GPIOB
 
 /* USER CODE END Private defines */
 
