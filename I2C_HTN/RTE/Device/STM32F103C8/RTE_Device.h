@@ -28,8 +28,6 @@
 
 #ifndef __RTE_DEVICE_H
 #define __RTE_DEVICE_H
-
-
 #define GPIO_PORT(num) \
  ((num == 0) ? GPIOA : \
   (num == 1) ? GPIOB : \
