@@ -1,0 +1,29 @@
+{
+    "configurations":  [
+                           {
+                               "name":  "Win32",
+                               "includePath":  [
+                                                   "D:/Program_Files/Document/Ky_IX/He_thong_nhung/Nhom6-K02/I2C_HTN/Core/Inc",
+                                                   "D:/Program_Files/Document/Ky_IX/He_thong_nhung/Nhom6-K02/I2C_HTN/Core/Src",
+                                                   "C:/Users/Admin/AppData/Local/Arm/Packs/Keil/STM32F1xx_DFP/2.4.1/Device/Include",
+                                                   "C:/Users/Admin/AppData/Local/Arm/Packs/ARM/CMSIS/6.1.0/CMSIS/Core/Include",
+                                                   "D:/Program_Files/Document/Ky_IX/He_thong_nhung/Nhom6-K02/I2C_HTN/RTE/_Target_1",
+                                                   "D:/Program_Files/Document/Ky_IX/He_thong_nhung/Nhom6-K02/I2C_HTN/RTE/Device/STM32F103C8",
+                                                   "C:/Users/Admin/AppData/Local/Keil_v5/ARM/ARMCLANG/include"
+                                               ],
+                               "defines":  [
+                                               "STM32F10X_MD"
+                                           ],
+                               "compilerPath":  "C:/Users/Admin/AppData/Local/Keil_v5/ARM/ARMCLANG/bin/armclang.exe",
+                               "compilerArgs":  [
+                                                    "--target=arm-arm-none-eabi",
+                                                    "-mcpu=cortex-m3",
+                                                    "-mthumb"
+                                                ],
+                               "cStandard":  "c99",
+                               "cppStandard":  "c++17",
+                               "intelliSenseMode":  "windows-clang-arm"
+                           }
+                       ],
+    "version":  4
+}

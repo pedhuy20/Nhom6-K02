@@ -1,4 +1,4 @@
-#include "oled_ssd1306.h"
+#include "oled_sh1106.h"
 #include "oled_graphics.h"
 #include <stddef.h>
 
@@ -6,6 +6,7 @@
 #define OLED_CONTROL_COMMAND  0x00U
 #define OLED_CONTROL_DATA     0x40U
 #define OLED_DATA_CHUNK_SIZE    32U
+#define OLED_COLUMN_OFFSET       2U  // SH1106 128x64: vung hien thi cot 2..129
 
 // Bus được truyền vào khi khởi tạo và trạng thái màn hình
 static I2C_Handle_t *OLED_I2CHandle = NULL;
@@ -119,26 +120,53 @@ static OLED_Status OLED_WriteData(const uint8_t *data, uint16_t length)
     return OLED_OK;
 }
 
-// Chọn toàn bộ vùng ảnh rồi gửi framebuffer
+// SH1106: chọn page/cột rồi gửi 128 byte, không tự chuyển sang page sau
 static OLED_Status OLED_SendFramebuffer(void)
 {
-    static const uint8_t window[] =
-    {
-        0x21U, 0x00U, 0x7FU,  // Cột 0 đến 127
-        0x22U, 0x00U, 0x07U   // Page 0 đến 7
-    };
+    const uint8_t *buffer = OLED_GetFramebuffer();
+    uint8_t page;
+    uint8_t commands[3];
     OLED_Status status;
 
-    status = OLED_WriteCommands(window, sizeof(window));
-    if (status != OLED_OK)
+    for (page = 0U; page < OLED_HEIGHT / 8U; page++)
     {
-        return status;
+        commands[0] = (uint8_t)(0xB0U | page);
+        commands[1] = (uint8_t)(OLED_COLUMN_OFFSET & 0x0FU);
+        commands[2] = (uint8_t)(0x10U | (OLED_COLUMN_OFFSET >> 4U));
+
+        status = OLED_WriteCommands(commands, sizeof(commands));
+        if (status != OLED_OK)
+        {
+            return status;
+        }
+
+        status = OLED_WriteData(&buffer[(uint16_t)page * OLED_WIDTH],
+                                OLED_WIDTH);
+        if (status != OLED_OK)
+        {
+            return status;
+        }
     }
 
-    return OLED_WriteData(OLED_GetFramebuffer(), OLED_BUFFER_SIZE);
+    return OLED_OK;
 }
 
-// Cấu hình SSD1306 128x64 dùng charge pump nội
+// Chờ nguồn OLED ổn định; chỉ dùng một lần trước khi bật hiển thị.
+// Mỗi vòng có ít nhất một NOP, nên thời gian chờ tối thiểu khoảng 100 ms.
+static void OLED_WaitPowerStable(void)
+{
+    volatile uint32_t count;
+
+    SystemCoreClockUpdate();
+    count = SystemCoreClock / 10U;
+    while (count > 0U)
+    {
+        __NOP();
+        count--;
+    }
+}
+
+// Cấu hình SH1106 128x64 dùng DC-DC nội; giữ nguyên tên file và API
 OLED_Status OLED_Init(I2C_Handle_t *i2c_handle)
 {
     static const uint8_t commands[] =
@@ -148,17 +176,15 @@ OLED_Status OLED_Init(I2C_Handle_t *i2c_handle)
         0xA8U, 0x3FU,        // 64 hàng
         0xD3U, 0x00U,        // Không dịch ảnh theo chiều dọc
         0x40U,               // Dòng bắt đầu bằng 0
-        0x8DU, 0x14U,        // Bật charge pump nội
-        0x20U, 0x00U,        // Chế độ ghi địa chỉ ngang
+        0xADU, 0x8BU,        // Bật DC-DC nội của SH1106
         0xA1U,               // Ánh xạ cột
         0xC8U,               // Hướng quét COM
         0xDAU, 0x12U,        // Cấu hình COM cho 128x64
         0x81U, 0x7FU,        // Độ tương phản
-        0xD9U, 0xF1U,        // Thời gian pre-charge
-        0xDBU, 0x20U,        // Mức VCOMH
+        0xD9U, 0x22U,        // Thời gian discharge/pre-charge mặc định SH1106
+        0xDBU, 0x35U,        // Mức VCOM mặc định SH1106
         0xA4U,               // Hiển thị nội dung GDDRAM
-        0xA6U,               // Hiển thị bình thường
-        0x2EU                // Tắt cuộn ảnh
+        0xA6U                // Hiển thị bình thường
     };
     OLED_Status status;
 
@@ -185,6 +211,7 @@ OLED_Status OLED_Init(I2C_Handle_t *i2c_handle)
         return status;
     }
 
+    OLED_WaitPowerStable();
     status = OLED_WriteCommand(0xAFU);
     if (status != OLED_OK)
     {
