@@ -3,7 +3,7 @@
 <title>Static Call Graph - [K02_I2C_HAL\K02_I2C_HAL.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image K02_I2C_HAL\K02_I2C_HAL.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6130100: Last Updated: Sun Oct 18 22:27:19 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6130100: Last Updated: Tue Oct 20 17:20:22 2026
 <BR><P>
 <H3>Maximum Stack Usage =        328 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -1008,8 +1008,8 @@ Global Symbols
 <LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_RCC_ClockConfig
 <LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C_Master_Transmit
 <LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C_Master_Receive
-<LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C_IsDeviceReady
 <LI><a href="#[a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Finish
+<LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C_IsDeviceReady
 <LI><a href="#[c4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Now
 </UL>
 
@@ -1022,8 +1022,8 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[c1]"></a>HAL_I2C_GetError</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, stm32f1xx_hal_i2c.o(.text.HAL_I2C_GetError))
-<BR><BR>[Called By]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C_IsDeviceReady
-<LI><a href="#[a3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Result
+<BR><BR>[Called By]<UL><LI><a href="#[a3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Result
+<LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C_IsDeviceReady
 </UL>
 
 <P><STRONG><a name="[a1]"></a>HAL_I2C_GetState</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, stm32f1xx_hal_i2c.o(.text.HAL_I2C_GetState))
@@ -1197,7 +1197,8 @@ Global Symbols
 <LI><a href="#[c0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Valid
 <LI><a href="#[a3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Result
 </UL>
-<BR>[Called By]<UL><LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C_Scan
+<BR>[Called By]<UL><LI><a href="#[da]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SV4_Task
+<LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C_Scan
 <LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BH1750_KiemTraKetNoi
 </UL>
 
@@ -1357,7 +1358,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[6d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[da]"></a>SV4_Task</STRONG> (Thumb, 1376 bytes, Stack size 64 bytes, sv4_app.o(.text.SV4_Task))
+<P><STRONG><a name="[da]"></a>SV4_Task</STRONG> (Thumb, 1620 bytes, Stack size 64 bytes, sv4_app.o(.text.SV4_Task))
 <BR><BR>[Stack]<UL><LI>Max Depth = 304 + Unknown Stack Size
 <LI>Call Chain = SV4_Task &rArr; OLED_Init &rArr; OLED_SendFramebuffer &rArr; OLED_WriteCommands &rArr; OLED_WriteCommand &rArr; I2C_Master_Transmit &rArr; HAL_I2C_Master_Transmit &rArr; I2C_WaitOnMasterAddressFlagUntilTimeout
 </UL>
@@ -1370,6 +1371,7 @@ Global Symbols
 <LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OLED_DrawChar
 <LI><a href="#[cf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;OLED_Clear
 <LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C_Scan
+<LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C_IsDeviceReady
 <LI><a href="#[be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C_BusRecover
 <LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BH1750_KhoiTao
 <LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BH1750_DocLux
@@ -1798,8 +1800,8 @@ Local Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[c1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_I2C_GetError
 </UL>
-<BR>[Called By]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C_IsDeviceReady
-<LI><a href="#[a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Finish
+<BR>[Called By]<UL><LI><a href="#[a2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Finish
+<LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;I2C_IsDeviceReady
 </UL>
 
 <P><STRONG><a name="[c0]"></a>Valid</STRONG> (Thumb, 48 bytes, Stack size 8 bytes, i2c_driver.o(.text.Valid))

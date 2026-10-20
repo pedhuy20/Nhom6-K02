@@ -1,7 +1,7 @@
 /*
  * SV4 HAL - HSI 8 MHz, I2C1 100 kHz, SH1106 128x64.
- * Nut PA0--GND: moi lan nhan chuyen 1 -> 2 -> 3 -> 1, chong doi 30 ms.
- * Ba trang va lich doc giong ban thanh ghi 349 dong.
+ * Nut PB0--GND: moi lan nhan chuyen 1 -> 2 -> 3 -> 1, chong doi 30 ms.
+ * Ba trang va kiem tra ket noi nen giong ban thanh ghi da cap nhat.
  * Frame chi do OLED_Update() thanh cong bang DWT; khong min/max/mean/uptime.
  * Khong LED PC13, khong trang loi rieng, khong doi trang tu dong.
  * SV2/SV3 giu nguyen source; i2c_driver.c nay chuyen loi goi sang HAL.
@@ -23,6 +23,8 @@
 
 #define SV4_CLOCK_HZ           8000000UL
 #define SENSOR_PERIOD_MS      1000UL
+#define CONNECTION_PERIOD_MS  200UL
+#define CONNECTION_TIMEOUT_MS 3UL
 #define DISPLAY_PERIOD_MS     250UL
 #define RETRY_MS              1000UL
 #define BUTTON_DEBOUNCE_MS    30UL
@@ -48,9 +50,12 @@ volatile uint8_t g_sv4_page = 1U;
 volatile uint32_t g_sv4_ms;
 static I2C_Handle_t *bus;
 
-static uint32_t recover_due, sht_due, bh_due, oled_due;
+static uint32_t recover_due, sht_due, bh_due, oled_due, connection_due;
 static uint8_t bus_ready, sht_pending, bh_configured, frame_valid;
-static uint8_t scan_active = 1U, scan_count, scan_addresses[SCAN_CAPACITY];
+static uint8_t scan_active = 1U, scan_count, scan_found;
+static uint8_t scan_addresses[SCAN_CAPACITY];
+static const uint8_t device_addresses[] =
+    { SHT30_DIA_CHI, BH1750_DIA_CHI, OLED_I2C_ADDRESS };
 static uint8_t button_raw = 1U, button_stable = 1U;
 static uint32_t button_changed_at;
 
@@ -128,6 +133,30 @@ static uint8_t Bus_Task(uint32_t now)
     return 1U;
 }
 
+/* ACK duoc kiem tra o nen; chi doc du lieu hop le moi cho valid = 1. */
+static void Connection_Task(uint32_t now)
+{
+    if (Due(now, connection_due) == 0U) return;
+    connection_due = now + CONNECTION_PERIOD_MS;
+
+    if (I2C_IsDeviceReady(bus, SHT30_DIA_CHI,
+                          CONNECTION_TIMEOUT_MS) != I2C_STATUS_OK)
+    {
+        if (g_sv4.sht30.valid != 0U) oled_due = Now();
+        g_sv4.sht30.valid = 0U;
+        g_sv4.sht30.last_status = SHT30_LOI_I2C;
+    }
+    if (BusIsStuck() != 0U) return;
+    if (I2C_IsDeviceReady(bus, BH1750_DIA_CHI,
+                          CONNECTION_TIMEOUT_MS) != I2C_STATUS_OK)
+    {
+        if (g_sv4.bh1750.valid != 0U) oled_due = Now();
+        g_sv4.bh1750.valid = 0U;
+        g_sv4.bh1750.last_status = BH1750_LOI_I2C;
+        bh_configured = 0U;
+    }
+}
+
 static void SHT_Task(uint32_t now)
 {
     SHT30_TrangThai status;
@@ -151,6 +180,8 @@ static void SHT_Task(uint32_t now)
             g_sv4.humidity_rh = data.do_am_rh;
         }
     }
+    if (g_sv4.sht30.valid != (uint8_t)(status == SHT30_THANH_CONG))
+        oled_due = Now();
     g_sv4.sht30.last_status = status;
     g_sv4.sht30.valid = (uint8_t)(status == SHT30_THANH_CONG);
 }
@@ -174,6 +205,8 @@ static void BH_Task(uint32_t now)
         else bh_configured = 0U;
         bh_due = Now() + SENSOR_PERIOD_MS;
     }
+    if (g_sv4.bh1750.valid != (uint8_t)(status == BH1750_THANH_CONG))
+        oled_due = Now();
     g_sv4.bh1750.last_status = status;
     g_sv4.bh1750.valid = (uint8_t)(status == BH1750_THANH_CONG);
 }
@@ -205,11 +238,12 @@ static void DrawPage(uint32_t now)
 {
     uint8_t i, index, group, groups;
     const char *name;
+    const char *state;
     int16_t x;
     if (g_sv4_page == 1U)
     {
         Text(0U, "1/3 I2C ADDRESSES");
-        Text(1U, "Found:%u (7-bit)", (unsigned int)scan_count);
+        Text(1U, "Found:%u (last scan)", (unsigned int)scan_found);
         groups = (uint8_t)((scan_count + 3U) / 4U);
         group = groups > 1U ? (uint8_t)((now / 2500UL) % groups) : 0U;
         for (i = 0U; i < 4U; i++)
@@ -219,8 +253,13 @@ static void DrawPage(uint32_t now)
             name = scan_addresses[index] == SHT30_DIA_CHI ? "SHT30" :
                    scan_addresses[index] == BH1750_DIA_CHI ? "BH1750" :
                    scan_addresses[index] == OLED_I2C_ADDRESS ? "OLED SH1106" : "Unknown";
-            Text((uint8_t)(i + 2U), "%s: 0x%02X", name,
-                 (unsigned int)scan_addresses[index]);
+            state = "";
+            if (scan_addresses[index] == SHT30_DIA_CHI)
+                state = g_sv4.sht30.valid ? " OK" : " ERROR";
+            else if (scan_addresses[index] == BH1750_DIA_CHI)
+                state = g_sv4.bh1750.valid ? " OK" : " ERROR";
+            Text((uint8_t)(i + 2U), "%s:0x%02X%s", name,
+                 (unsigned int)scan_addresses[index], state);
         }
         if (scan_count == 0U) Text(2U, "No device found");
         if (groups > 1U) Text(7U, "List:%u/%u", (unsigned int)(group + 1U),
@@ -288,11 +327,15 @@ static void OLED_Task(uint32_t now)
 
 void SV4_Task(void)
 {
+    uint32_t now;
+    uint8_t i, j;
     if (g_sv4.fatal_code != 0U) return;
-    uint32_t now = Now();
+    now = Now();
     g_sv4.loop_count++;
     Button_Task(now);
     if (Bus_Task(now) == 0U) return;
+    if (sht_pending == 0U) Connection_Task(Now());
+    if (BusIsStuck() != 0U) return;
     SHT_Task(Now());
     if (sht_pending != 0U || BusIsStuck() != 0U) return;
     BH_Task(Now());
@@ -302,6 +345,17 @@ void SV4_Task(void)
         g_sv4.scan_status = I2C_Scan(bus, scan_addresses, SCAN_CAPACITY,
                                      &scan_count, 3UL);
         if (g_sv4.scan_status != I2C_STATUS_OK) { bus_ready = 0U; return; }
+        scan_found = scan_count;
+        /* Giu ten va dia chi da cau hinh de van hien ERROR khi vang mat.
+         * Found van la so ACK that cua lan quet, khong dem cac muc bo sung.
+         */
+        for (i = 0U; i < sizeof(device_addresses); i++)
+        {
+            for (j = 0U; j < scan_count; j++)
+                if (scan_addresses[j] == device_addresses[i]) break;
+            if (j == scan_count && scan_count < SCAN_CAPACITY)
+                scan_addresses[scan_count++] = device_addresses[i];
+        }
         scan_active = 0U;
     }
     OLED_Task(Now());
@@ -321,5 +375,5 @@ void SV4_Init(I2C_HandleTypeDef *i2c)
     g_sv4.bus_status = HAL_I2C_GetState(bus) == HAL_I2C_STATE_READY ?
                           I2C_STATUS_OK : I2C_STATUS_BUSY;
     bus_ready = (uint8_t)(g_sv4.bus_status == I2C_STATUS_OK);
-    sht_due = bh_due = oled_due = recover_due = Now() + 50UL;
+    sht_due = bh_due = oled_due = recover_due = connection_due = Now() + 50UL;
 }
