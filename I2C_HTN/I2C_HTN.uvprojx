@@ -413,11 +413,6 @@
               <FilePath>.\Core\Src\rcc.c</FilePath>
             </File>
             <File>
-              <FileName>main.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Core\Src\main.c</FilePath>
-            </File>
-            <File>
               <FileName>sht30.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Core\Src\sht30.c</FilePath>
@@ -431,6 +426,11 @@
               <FileName>bh1750.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Core\Src\bh1750.c</FilePath>
+            </File>
+            <File>
+              <FileName>main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Core\Src\main.c</FilePath>
             </File>
           </Files>
         </Group>
