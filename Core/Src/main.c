@@ -1,219 +1,96 @@
+/*
+ * K02 - SV4: TICH HOP VA KIEM THU BAN THANH GHI
+ * STM32F103C8T6 / Keil Arm Compiler 6 / C99.
+ * HSI 8 MHz, I2C1 100 kHz, PB6=SCL, PB7=SDA.
+ * SHT30=0x44, BH1750=0x23, SSD1306 128x64=0x3C (dia chi 7 bit).
+ *
+ * CAN THEM VAO TARGET:
+ *   rcc.c, gpio.c, i2c_driver.c, sht30.c, bh1750.c,
+ *   oled_ssd1306.c, oled_graphics.c, oled_fonts.c, oled_tests.c,
+ *   startup va system_stm32f10x.c phu hop voi chip.
+ * Them thu muc header vao Include Paths. Chi mot file duoc dinh nghia main().
+ * Dung i2c_driver.c SV1 da gui, khop i2c_driver.h. Cac vong cho cua driver
+ * dung DWT cho timeout; main khong the sua mot driver lap vo han tu ben ngoai.
+ *
+ * KHONG include rcc.h/gpio.h o day: hai header tu viet dung lai cac ten
+ * RCC_TypeDef/GPIO_TypeDef da co trong stm32f10x.h. Chi khai bao ba ham
+ * can dung ben duoi; khong doi file cua SV1 va khong tao them ban driver.
+ *
+ * DEBUG / WATCH (chay board, khong phai so lieu gia lap de bao cao):
+ *   g_sv4                 : gia tri, loi, thoi gian, ket qua quet va test.
+ *   g_sv4_ms              : thoi gian ms; phai tang lien tuc khi Run.
+ *   g_sv4_page = 255       : tu doi trang moi 4 s; 0..3: co dinh trang.
+ *   g_sv4_command = 1      : quet lai 0x08..0x77, moi lan mot dia chi.
+ *   g_sv4_command = 2      : yeu cau phuc hoi bus qua driver SV1.
+ *   g_sv4_command = 4      : do 10 lan OLED_Update voi cung mot anh test.
+ *   g_sv4_command = 8      : chay lai test framebuffer va CRC trong RAM.
+ * Co the OR cac lenh. Ung dung xoa lenh sau khi nhan.
+ *
+ * THU NGHIEM SV4:
+ * 1. Quet thay ba dia chi; ten tren trang quet la ANH XA CAU HINH,
+ *    ACK tai mot dia chi khong tu chung minh danh tinh linh kien.
+ * 2. Rut BH1750/SHT30: dong du lieu bao ERROR, cam bien con lai van doc.
+ *    Cam lai: tu khoi tao/doc lai. LED PC13 nhay nhanh khi co loi.
+ * 3. Bus bi giu thap: phuc hoi toi da mot lan/s, ghi ket qua trong g_sv4.
+ *    Chi phuc hoi duoc khi nguyen nhan vat ly cho phep day duoc nha.
+ * 4. Logic Analyzer: SCL=PB6, SDA=PB7, GND chung; giai ma I2C 7 bit.
+ *    SHT30: write 24 00, STOP, doi >=20 ms, read 6 byte + CRC.
+ *    BH1750: write 01, 07, 10 (cac giao dich rieng), read 2 byte.
+ *    OLED: cac lenh co control=00, du lieu co control=40, chunk=32 byte
+ *    theo driver SV3. Dung lenh 4 de thu nhieu khung cung noi dung.
+ * 5. g_sv4.bench_* la thoi gian OLED_Update, KHONG gom ve framebuffer.
+ *    Ban nay KHONG dung ngat SysTick/I2C; ghi ro dieu kien do khi so voi HAL.
+ *    So Flash/RAM lay tu Program Size/Map cua Keil, main khong tu do duoc.
+ *    Flash thuong = Code+RO-data+RW-data; RAM = RW-data+ZI-data.
+ *    Anh Logic Analyzer, rut/cam cam bien, bang so lieu va bao cao van
+ *    can duoc thuc hien/thu thap tren board; khong tu danh dau da dat.
+ *
+ * DWT cung cap ca moc ms va phep do us; khong can them SysTick_Handler.
+ * Chu y driver SV1 gui kem: OAR1 bit 14 chua duoc dat trong I2C_Init;
+ * Bus_Init ben duoi bo sung bit nay. Nhan >=3 byte khoa ngat sau lan doc
+ * N-2: can SV1 sua vung bao ve neu them ngat trong tuong lai. Main hien tai
+ * tat SysTick va khong bat nguon ngat ngoai vi nao, de tranh chen ngat nen.
+ * Khong reset DWT->CYCCNT khi dang chay; Now() phai duoc goi it nhat mot
+ * lan trong moi chu ky tran DWT (~537 s o 8 MHz). Cac task hien tai ngan hon.
+ */
+
 #include "i2c_driver.h"
-#include <stdint.h>
-#include <string.h>
+#include "sht30.h"
+#include "bh1750.h"
+#include "oled_ssd1306.h"
+#include "oled_graphics.h"
+#include "oled_tests.h"
+#include <stdio.h>
 
-/* Địa chỉ 7-bit mặc định của màn hình OLED SSD1306 (0x78 >> 1 = 0x3C) */
-#define OLED_I2C_ADDR           0x3CU
+extern unsigned char RCC_InitHSI8MHz(void);
+extern void RCC_EnableI2C1Clock(void);
+extern void GPIO_I2C_Init(void);
 
-/* Kích thước màn hình OLED SSD1306 128x64 */
-#define OLED_WIDTH              128U
-#define OLED_HEIGHT             64U
-#define OLED_PAGES              (OLED_HEIGHT / 8U)
+#ifndef SV4_ENABLE_PC13_LED
+#define SV4_ENABLE_PC13_LED        1
+#endif
+#ifndef SV4_RUN_MEMORY_TESTS
+#define SV4_RUN_MEMORY_TESTS       1
+#endif
 
-/* Các biến toàn cục để theo dõi trực tiếp trong cửa sổ Watch của Keil uVision */
-volatile I2C_Status_t g_init_status = I2C_STATUS_OK;
-volatile I2C_Status_t g_oled_status = I2C_STATUS_OK;
-uint8_t  g_found_addrs[16];
-uint8_t  g_found_count = 0U;
+#define SV4_CLOCK_HZ               8000000UL
+#define SV4_SENSOR_PERIOD_MS       1000UL
+#define SV4_SHT_WAIT_MS            20UL
+#define SV4_BH_FIRST_WAIT_MS        200UL
+#define SV4_DISPLAY_PERIOD_MS      500UL
+#define SV4_RETRY_MS               1000UL
+#define SV4_SCAN_PERIOD_MS         15000UL
+#define SV4_PROBE_TIMEOUT_MS       3UL
+#define SV4_MAX_DEVICES            16U
+#define SV4_HISTORY_COUNT          64U
+#define SV4_GRAPH_MAX_LUX          1000
+#define SV4_BENCH_FRAMES           10U
+#define SV4_CMD_SCAN               1UL
+#define SV4_CMD_RECOVER            2UL
+#define SV4_CMD_BENCH              4UL
+#define SV4_CMD_MEMORY_TEST        8UL
 
-/* Handle quản lý I2C1 */
-static I2C_Handle_t g_i2c1;
-
-/* Bộ đệm khung hình (Framebuffer 1024 byte) */
-static uint8_t g_oled_vram[OLED_WIDTH * OLED_PAGES];
-
-/* Hàm gửi 1 lệnh điều khiển xuống SSD1306 (Control byte = 0x00) */
-static I2C_Status_t OLED_WriteCommand(uint8_t cmd)
+typedef struct
 {
-    uint8_t buf[2];
-    buf[0] = 0x00U; /* Co = 0, D/C# = 0 -> Byte tiếp theo là Command */
-    buf[1] = cmd;
-    return I2C_Master_Transmit(&g_i2c1, OLED_I2C_ADDR, buf, 2U, I2C_TIMEOUT_DEFAULT_MS);
-}
-
-/* Hàm đẩy toàn bộ Framebuffer (8 page x 128 byte) lên OLED SSD1306 */
-static I2C_Status_t OLED_UpdateScreen(void)
-{
-    I2C_Status_t status;
-    uint8_t page;
-    uint8_t tx_buf[OLED_WIDTH + 1U];
-
-    tx_buf[0] = 0x40U; /* Co = 0, D/C# = 1 -> Các byte tiếp theo là Data (GDDRAM) */
-
-    for (page = 0U; page < OLED_PAGES; page++)
-    {
-        status = OLED_WriteCommand(0xB0U + page); /* Chọn Page (0..7) */
-        if (status != I2C_STATUS_OK) return status;
-
-        status = OLED_WriteCommand(0x00U);        /* Cột thấp = 0 */
-        if (status != I2C_STATUS_OK) return status;
-
-        status = OLED_WriteCommand(0x10U);        /* Cột cao = 0 */
-        if (status != I2C_STATUS_OK) return status;
-
-        memcpy(&tx_buf[1], &g_oled_vram[page * OLED_WIDTH], OLED_WIDTH);
-        status = I2C_Master_Transmit(&g_i2c1, OLED_I2C_ADDR, tx_buf, OLED_WIDTH + 1U, I2C_TIMEOUT_DEFAULT_MS);
-        if (status != I2C_STATUS_OK) return status;
-    }
-
-    return I2C_STATUS_OK;
-}
-
-/* Khởi tạo màn hình OLED SSD1306 từ tập lệnh cơ bản */
-static I2C_Status_t OLED_Init(void)
-{
-    static const uint8_t init_cmds[] = {
-        0xAEU,       /* Display OFF */
-        0x20U, 0x02U,/* Memory Addressing Mode: Page Addressing Mode */
-        0xB0U,       /* Page Start Address = 0 */
-        0xC8U,       /* COM Output Scan Direction: Remapped */
-        0x00U,       /* Low Column Address = 0 */
-        0x10U,       /* High Column Address = 0 */
-        0x40U,       /* Start Line Address = 0 */
-        0x81U, 0xFFU,/* Contrast Control = Max */
-        0xA1U,       /* Segment Re-map: column 127 mapped to SEG0 */
-        0xA6U,       /* Normal Display (0xA7 = Inverse Display) */
-        0xA8U, 0x3FU,/* Multiplex Ratio = 64 (1/64 duty) */
-        0xA4U,       /* Output follows RAM content */
-        0xD3U, 0x00U,/* Display Offset = 0 */
-        0xD5U, 0xF0U,/* Display Clock Divide Ratio / Oscillator Frequency */
-        0xD9U, 0x22U,/* Pre-charge Period */
-        0xDAU, 0x12U,/* COM Pins Hardware Configuration */
-        0xDBU, 0x20U,/* VCOMH Deselect Level */
-        0x8DU, 0x14U,/* Charge Pump Enable */
-        0xAFU        /* Display ON */
-    };
-
-    I2C_Status_t status;
-    uint32_t i;
-
-    for (i = 0U; i < sizeof(init_cmds); i++)
-    {
-        status = OLED_WriteCommand(init_cmds[i]);
-        if (status != I2C_STATUS_OK)
-        {
-            return status;
-        }
-    }
-
-    return I2C_STATUS_OK;
-}
-
-/* Vẽ 1 điểm ảnh vào Framebuffer để test đồ họa cơ bản */
-static void OLED_DrawPixel(uint8_t x, uint8_t y, uint8_t color)
-{
-    if (x >= OLED_WIDTH || y >= OLED_HEIGHT) return;
-
-    if (color != 0U)
-        g_oled_vram[x + (y / 8U) * OLED_WIDTH] |= (uint8_t)(1U << (y & 7U));
-    else
-        g_oled_vram[x + (y / 8U) * OLED_WIDTH] &= (uint8_t)~(1U << (y & 7U));
-}
-
-/* Tạo hình test (khung viền + 2 đường chéo + ô bàn cờ ở giữa) */
-static void OLED_DrawTestPattern(void)
-{
-    uint8_t x, y;
-
-    memset(g_oled_vram, 0x00, sizeof(g_oled_vram));
-
-    /* 1. Vẽ khung viền ngoài màn hình 128x64 */
-    for (x = 0U; x < OLED_WIDTH; x++)
-    {
-        OLED_DrawPixel(x, 0U, 1U);
-        OLED_DrawPixel(x, OLED_HEIGHT - 1U, 1U);
-    }
-    for (y = 0U; y < OLED_HEIGHT; y++)
-    {
-        OLED_DrawPixel(0U, y, 1U);
-        OLED_DrawPixel(OLED_WIDTH - 1U, y, 1U);
-    }
-
-    /* 2. Vẽ 2 đường chéo cắt nhau */
-    for (x = 0U; x < OLED_WIDTH; x++)
-    {
-        OLED_DrawPixel(x, (uint8_t)((x * OLED_HEIGHT) / OLED_WIDTH), 1U);
-        OLED_DrawPixel(x, (uint8_t)((OLED_HEIGHT - 1U) - (x * OLED_HEIGHT) / OLED_WIDTH), 1U);
-    }
-
-    /* 3. Vẽ khối bàn cờ ở chính giữa màn hình */
-    for (y = 20U; y < 44U; y++)
-    {
-        for (x = 44U; x < 84U; x++)
-        {
-            if ((((x / 4U) + (y / 4U)) & 1U) == 0U)
-            {
-                OLED_DrawPixel(x, y, 1U);
-            }
-        }
-    }
-}
-
-/* Tạo độ trễ đơn giản bằng vòng lặp để test đảo màu màn hình */
-static void Delay_Loop(volatile uint32_t count)
-{
-    while (count--)
-    {
-        __NOP();
-    }
-}
-
-int main(void)
-{
-    /* 1. Cấu hình I2C1 (PB6 = SCL, PB7 = SDA) ở tốc độ Fast Mode 400kHz */
-    g_i2c1.pI2Cx = I2C1;
-    g_i2c1.I2C_Config.I2C_SCLSpeed    = I2C_SCL_SPEED_FM;
-    g_i2c1.I2C_Config.I2C_ACKControl  = I2C_ACK_ENABLE;
-    g_i2c1.I2C_Config.I2C_FMDutyCycle = I2C_FM_DUTY_2;
-
-    g_init_status = I2C_Init(&g_i2c1);
-
-    /* 2. Quét toàn bộ bus I2C để kiểm tra xem có thấy 0x3C của OLED không */
-    if (g_init_status == I2C_STATUS_OK)
-    {
-        (void)I2C_Scan(&g_i2c1, g_found_addrs, sizeof(g_found_addrs),
-                       &g_found_count, I2C_TIMEOUT_DEFAULT_MS);
-
-        /* 3. Kiểm tra riêng địa chỉ OLED 0x3C và khởi tạo màn hình */
-        g_oled_status = I2C_IsDeviceReady(&g_i2c1, OLED_I2C_ADDR, I2C_TIMEOUT_DEFAULT_MS);
-        if (g_oled_status == I2C_STATUS_OK)
-        {
-            g_oled_status = OLED_Init();
-        }
-
-        /* 4. Nếu khởi tạo thành công, vẽ hình test và đẩy lên OLED */
-        if (g_oled_status == I2C_STATUS_OK)
-        {
-            OLED_DrawTestPattern();
-            g_oled_status = OLED_UpdateScreen();
-        }
-    }
-
-    while (1)
-    {
-        /* Nếu OLED bị rút dây hoặc lỗi NACK/Timeout thì thử phục hồi bus và khởi tạo lại */
-        if (g_oled_status != I2C_STATUS_OK)
-        {
-            (void)I2C_BusRecover(&g_i2c1);
-            if (I2C_IsDeviceReady(&g_i2c1, OLED_I2C_ADDR, I2C_TIMEOUT_DEFAULT_MS) == I2C_STATUS_OK)
-            {
-                if (OLED_Init() == I2C_STATUS_OK)
-                {
-                    OLED_DrawTestPattern();
-                    g_oled_status = OLED_UpdateScreen();
-                }
-            }
-            Delay_Loop(1000000UL);
-        }
-        else
-        {
-            /* Đảo màu hiển thị (Normal <-> Inverse) định kỳ để kiểm tra truyền lệnh liên tục */
-            Delay_Loop(4000000UL);
-            g_oled_status = OLED_WriteCommand(0xA7U); /* Inverse Display */
-            if (g_oled_status != I2C_STATUS_OK) continue;
-
-            Delay_Loop(4000000UL);
-            g_oled_status = OLED_WriteCommand(0xA6U); /* Normal Display */
-        }
-    }
-}
+    uint8_t valid;             /* Co du lieu moi hop le / OLED dang san sang. */
+    uint8_t ever_ok;

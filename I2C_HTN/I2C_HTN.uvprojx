@@ -10,7 +10,7 @@
       <TargetName>Target 1</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>6240000::V6.24::ARMCLANG</pCCUsed>
+      <pCCUsed>6130001::V6.13.1::.\ARMCLANG</pCCUsed>
       <uAC6>1</uAC6>
       <TargetOption>
         <TargetCommonOption>
@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\Core\Inc</IncludePath>
+              <IncludePath>..\Core\Inc;.\Core\Inc;.\Inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -388,9 +388,49 @@
               <FilePath>..\Core\Src\i2c_driver.c</FilePath>
             </File>
             <File>
+              <FileName>oled_fonts.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Core\Src\oled_fonts.c</FilePath>
+            </File>
+            <File>
+              <FileName>gpio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Core\Src\gpio.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled_graphics.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Core\Src\oled_graphics.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled_tests.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Core\Src\oled_tests.c</FilePath>
+            </File>
+            <File>
+              <FileName>rcc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Core\Src\rcc.c</FilePath>
+            </File>
+            <File>
+              <FileName>bh1750.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Src\bh1750.c</FilePath>
+            </File>
+            <File>
+              <FileName>sht30.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Src\sht30.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled_ssd1306.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Core\Src\oled_ssd1306.c</FilePath>
+            </File>
+            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Core\Src\main.c</FilePath>
+              <FilePath>.\Core\Src\main.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -411,6 +451,36 @@
               <FileName>rcc.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\Core\Inc\rcc.h</FilePath>
+            </File>
+            <File>
+              <FileName>oled_fonts.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Core\Inc\oled_fonts.h</FilePath>
+            </File>
+            <File>
+              <FileName>oled_graphics.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Core\Inc\oled_graphics.h</FilePath>
+            </File>
+            <File>
+              <FileName>oled_ssd1306.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Core\Inc\oled_ssd1306.h</FilePath>
+            </File>
+            <File>
+              <FileName>oled_tests.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Core\Inc\oled_tests.h</FilePath>
+            </File>
+            <File>
+              <FileName>bh1750.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Inc\bh1750.h</FilePath>
+            </File>
+            <File>
+              <FileName>sht30.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Inc\sht30.h</FilePath>
             </File>
           </Files>
         </Group>
