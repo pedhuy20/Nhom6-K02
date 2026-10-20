@@ -3,7 +3,7 @@
  * Auto generated Run-Time-Environment Configuration File
  *      *** Do not modify ! ***
  *
- * Project: 'I2C_HTS' 
+ * Project: 'I2C_HTN' 
  * Target:  'Target 1' 
  */
 
