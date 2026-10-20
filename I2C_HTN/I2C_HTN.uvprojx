@@ -413,24 +413,24 @@
               <FilePath>.\Core\Src\rcc.c</FilePath>
             </File>
             <File>
-              <FileName>bh1750.c</FileName>
+              <FileName>main.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Src\bh1750.c</FilePath>
+              <FilePath>.\Core\Src\main.c</FilePath>
             </File>
             <File>
               <FileName>sht30.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Src\sht30.c</FilePath>
+              <FilePath>.\Core\Src\sht30.c</FilePath>
             </File>
             <File>
-              <FileName>oled_ssd1306.c</FileName>
+              <FileName>oled_sh1106.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Core\Src\oled_ssd1306.c</FilePath>
+              <FilePath>.\Core\Src\oled_sh1106.c</FilePath>
             </File>
             <File>
-              <FileName>main.c</FileName>
+              <FileName>bh1750.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Core\Src\main.c</FilePath>
+              <FilePath>.\Core\Src\bh1750.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -463,11 +463,6 @@
               <FilePath>.\Core\Inc\oled_graphics.h</FilePath>
             </File>
             <File>
-              <FileName>oled_ssd1306.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Core\Inc\oled_ssd1306.h</FilePath>
-            </File>
-            <File>
               <FileName>oled_tests.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Core\Inc\oled_tests.h</FilePath>
@@ -475,12 +470,17 @@
             <File>
               <FileName>bh1750.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Inc\bh1750.h</FilePath>
+              <FilePath>.\Core\Inc\bh1750.h</FilePath>
             </File>
             <File>
               <FileName>sht30.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Inc\sht30.h</FilePath>
+              <FilePath>.\Core\Inc\sht30.h</FilePath>
+            </File>
+            <File>
+              <FileName>oled_sh1106.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Core\Inc\oled_sh1106.h</FilePath>
             </File>
           </Files>
         </Group>

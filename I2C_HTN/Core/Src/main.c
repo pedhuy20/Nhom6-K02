@@ -2,7 +2,7 @@
 #include "i2c_driver.h"
 #include "sht30.h"
 #include "bh1750.h"
-#include "oled_ssd1306.h"
+#include "oled_sh1106.h"
 #include "oled_graphics.h"
 #include <stdio.h>
 #include <stdarg.h>

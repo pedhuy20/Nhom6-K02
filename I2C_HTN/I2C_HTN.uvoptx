@@ -303,8 +303,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\Src\bh1750.c</PathWithFileName>
-      <FilenameWithoutPath>bh1750.c</FilenameWithoutPath>
+      <PathWithFileName>.\Core\Src\main.c</PathWithFileName>
+      <FilenameWithoutPath>main.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -315,7 +315,7 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\Src\sht30.c</PathWithFileName>
+      <PathWithFileName>.\Core\Src\sht30.c</PathWithFileName>
       <FilenameWithoutPath>sht30.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
@@ -327,8 +327,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\Core\Src\oled_ssd1306.c</PathWithFileName>
-      <FilenameWithoutPath>oled_ssd1306.c</FilenameWithoutPath>
+      <PathWithFileName>.\Core\Src\oled_sh1106.c</PathWithFileName>
+      <FilenameWithoutPath>oled_sh1106.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -339,8 +339,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\Core\Src\main.c</PathWithFileName>
-      <FilenameWithoutPath>main.c</FilenameWithoutPath>
+      <PathWithFileName>.\Core\Src\bh1750.c</PathWithFileName>
+      <FilenameWithoutPath>bh1750.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -419,8 +419,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\Core\Inc\oled_ssd1306.h</PathWithFileName>
-      <FilenameWithoutPath>oled_ssd1306.h</FilenameWithoutPath>
+      <PathWithFileName>.\Core\Inc\oled_tests.h</PathWithFileName>
+      <FilenameWithoutPath>oled_tests.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -431,8 +431,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\Core\Inc\oled_tests.h</PathWithFileName>
-      <FilenameWithoutPath>oled_tests.h</FilenameWithoutPath>
+      <PathWithFileName>.\Core\Inc\bh1750.h</PathWithFileName>
+      <FilenameWithoutPath>bh1750.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -443,8 +443,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\Inc\bh1750.h</PathWithFileName>
-      <FilenameWithoutPath>bh1750.h</FilenameWithoutPath>
+      <PathWithFileName>.\Core\Inc\sht30.h</PathWithFileName>
+      <FilenameWithoutPath>sht30.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -455,8 +455,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>.\Inc\sht30.h</PathWithFileName>
-      <FilenameWithoutPath>sht30.h</FilenameWithoutPath>
+      <PathWithFileName>.\Core\Inc\oled_sh1106.h</PathWithFileName>
+      <FilenameWithoutPath>oled_sh1106.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
