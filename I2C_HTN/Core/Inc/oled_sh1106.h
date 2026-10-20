@@ -1,5 +1,5 @@
-#ifndef OLED_SSD1306_H
-#define OLED_SSD1306_H
+#ifndef OLED_SH1106_H
+#define OLED_SH1106_H
 
 #include "i2c_driver.h"
 
@@ -17,10 +17,10 @@ typedef enum
     OLED_INVALID_ARGUMENT
 } OLED_Status;
 
-// Khởi tạo SSD1306 bằng bus I2C đã được cấu hình
+// Khởi tạo SH1106 bằng bus I2C đã được cấu hình
 OLED_Status OLED_Init(I2C_Handle_t *i2c_handle);
 
-// Gửi bộ đệm ảnh lên SSD1306
+// Gửi bộ đệm ảnh lên SH1106
 OLED_Status OLED_Update(void);
 
 #endif
