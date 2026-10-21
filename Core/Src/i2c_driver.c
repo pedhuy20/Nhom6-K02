@@ -1,18 +1,11 @@
 /*
- * i2c_driver.c - STM32F103 (STM32F1) register-level I2C master driver
- *
- * Public API: matches the user's i2c_driver.h, unchanged.
- * Supported: I2C1 (PB6/PB7 or AFIO remap PB8/PB9), I2C2 (PB10/PB11),
- * 7-bit master polling, standard/fast mode, N-byte TX/RX, repeated START,
- * ACK probe / address scanner, NACK/error/timeout and GPIO bus recovery.
- *
- * Timebase: ARM Cortex-M3 DWT->CYCCNT. No HAL_I2C_* or SysTick dependency.
- *          Call I2C_Init() again after changing SystemCoreClock / APB1.
- * Preconditions: external pull-ups on SCL/SDA; no concurrent access;
- *                SystemCoreClockUpdate() reports the actual HCLK.
- *
- * Important: Review ST RM0008, AN2824, and STM32F103x8/B errata ES096.
- * Hardware validation (logic analyzer, 1/2/N-byte RX, stuck bus) is required.
+
+ * Giao diện API công khai tương thích với tệp i2c_driver.h hiện có.
+ * Hỗ trợ: I2C1 (PB6/PB7 hoặc ánh xạ lại qua AFIO sang PB8/PB9),
+ * I2C2 (PB10/PB11), Master địa chỉ 7 bit với cơ chế thăm dò cờ (polling),
+ * chế độ Standard/Fast, truyền/nhận N byte, Repeated START,
+ * kiểm tra ACK/quét địa chỉ, xử lý NACK/lỗi/Timeout và khôi phục bus bằng GPIO.
+ * Điều kiện sử dụng: SCL/SDA có điện trở kéo lên; không truy cập bus đồng thời;
  */
 
 #include "i2c_driver.h"
@@ -36,9 +29,9 @@ typedef struct
     uint8_t sda;
 } I2C_Pins_t;
 
-/* ------------------------------------------------------------------------- */
-/* PRIVATE: monotonic timeout (wrap-safe if requested interval < 2^31 cycles) */
-/* ------------------------------------------------------------------------- */
+/* Private : Quản lý Timeout bằng bộ đếm chu kỳ (an toàn khi tràn nếu khoảng chờ < 2^31 chu kỳ)
+ */
+
 static uint32_t I2C_Now(void)
 {
     return DWT->CYCCNT;
@@ -66,9 +59,8 @@ static void I2C_DelayUs(uint32_t microseconds)
     while ((uint32_t)(I2C_Now() - start) < cycles) { }
 }
 
-/* ------------------------------------------------------------------------- */
-/* PRIVATE: GPIO pin mapping and mode                                       */
-/* ------------------------------------------------------------------------- */
+/* Private : Ánh xạ chân và cấu hình chế độ GPIO */
+
 static uint8_t I2C_GetPins(I2C_TypeDef *i2c, I2C_Pins_t *pins)
 {
     if ((pins == NULL) || (i2c == NULL))
@@ -110,7 +102,7 @@ static void I2C_PinMode(GPIO_TypeDef *gpio, uint8_t pin, uint32_t nibble)
 static void I2C_PinsToAFOD(const I2C_Pins_t *p)
 {
     uint32_t mask = (1UL << p->scl) | (1UL << p->sda);
-    p->port->BSRR = mask; /* release lines first; needs external pull-ups */
+    p->port->BSRR = mask; /* Nhả các đường tín hiệu trước; cần điện trở kéo lên bên ngoài */
     I2C_PinMode(p->port, p->scl, I2C_GPIO_AF_OD_50MHZ);
     I2C_PinMode(p->port, p->sda, I2C_GPIO_AF_OD_50MHZ);
 }
@@ -131,7 +123,7 @@ static void I2C_PinPullLow(const I2C_Pins_t *p, uint8_t pin)
 }
 
 /* ------------------------------------------------------------------------- */
-/* PRIVATE: SR1 errors, waits, STOP, and ACK cleanup                         */
+/* Private : Kiểm tra lỗi SR1, chờ cờ, tạo STOP và khôi phục ACK */
 /* ------------------------------------------------------------------------- */
 static I2C_Status_t I2C_ErrorFromSR1(uint32_t sr1)
 {
@@ -145,7 +137,7 @@ static I2C_Status_t I2C_ErrorFromSR1(uint32_t sr1)
 
 static void I2C_ClearErrorFlags(I2C_TypeDef *i2c)
 {
-    /* STM32F1 SR1 error flags are cleared by writing 0 to their bits. */
+    /* Các cờ lỗi trong SR1 của STM32F1 được xóa bằng cách ghi 0 vào các bit tương ứng. */
     i2c->SR1 &= ~I2C_ERROR_BITS;
 }
 
@@ -206,13 +198,13 @@ static void I2C_RestoreACK(I2C_Handle_t *h)
 static void I2C_Abort(I2C_Handle_t *h, uint32_t started, uint32_t timeout_ms)
 {
     I2C_TypeDef *i2c = h->pI2Cx;
-    /* ARLO drops master ownership: never force STOP when another master owns bus. */
+    /* Khi xảy ra ARLO, ngoại vi mất quyền Master; không cưỡng bức STOP nếu thiết bị khác đang giữ bus. */
     if ((i2c->SR2 & I2C_SR2_MSL) != 0U)
     {
         i2c->CR1 |= I2C_CR1_STOP;
     }
     I2C_ClearErrorFlags(i2c);
-    /* Best effort only, never add an unbounded wait to an error path. */
+    /* Chỉ cố gắng dừng phiên truyền nhận trong giới hạn cho phép; không chờ vô hạn khi xử lý lỗi. */
     while (((i2c->CR1 & I2C_CR1_STOP) != 0U) &&
            !I2C_Expired(started, timeout_ms)) { }
     I2C_RestoreACK(h);
@@ -231,13 +223,12 @@ static uint8_t I2C_ValidHandle(I2C_Handle_t *h)
 
 static uint8_t I2C_ValidAddress(uint8_t addr)
 {
-    /* Strict user-facing policy: only non-reserved 7-bit addresses. */
+    /* Chỉ chấp nhận địa chỉ 7 bit không thuộc dải địa chỉ dành riêng. */
     return ((addr >= 0x08U) && (addr <= 0x77U)) ? 1U : 0U;
 }
 
-/* ------------------------------------------------------------------------- */
-/* PRIVATE: START / address; leaves ADDR set so RX has time to manage ACK    */
-/* ------------------------------------------------------------------------- */
+/* Private : Phát START và địa chỉ; giữ cờ ADDR để pha nhận kịp cấu hình ACK */
+
 static I2C_Status_t I2C_StartAddress(I2C_TypeDef *i2c, uint8_t address,
                                      uint8_t direction, uint32_t started,
                                      uint32_t timeout_ms)
@@ -247,12 +238,12 @@ static I2C_Status_t I2C_StartAddress(I2C_TypeDef *i2c, uint8_t address,
     s = I2C_WaitSR1(i2c, I2C_SR1_SB, started, timeout_ms);
     if (s != I2C_STATUS_OK) return s;
 
-    /* Reading SR1 for SB above followed by writing DR clears SB. */
+    /* Sau khi đọc SR1 để kiểm tra SB, ghi DR sẽ xóa cờ SB. */
     i2c->DR = (uint8_t)((address << 1U) | (direction & 1U));
     return I2C_WaitSR1(i2c, I2C_SR1_ADDR, started, timeout_ms);
 }
 
-/* No STOP here; WriteRead will use repeated START. */
+/* Không tạo STOP tại đây; hàm WriteRead sẽ sử dụng Repeated START. */
 static I2C_Status_t I2C_WriteBytes(I2C_TypeDef *i2c, const uint8_t *data,
                                    uint16_t size, uint32_t started,
                                    uint32_t timeout_ms)
@@ -261,7 +252,7 @@ static I2C_Status_t I2C_WriteBytes(I2C_TypeDef *i2c, const uint8_t *data,
     uint16_t i;
     if (size == 0U) return I2C_STATUS_OK;
 
-    /* EV8_1: first DR write should follow ADDR clearing promptly. */
+    /* Sự kiện EV8_1: Cần ghi byte đầu tiên vào DR ngay sau khi xóa cờ ADDR. */
     i2c->DR = data[0];
     for (i = 1U; i < size; i++)
     {
@@ -272,7 +263,7 @@ static I2C_Status_t I2C_WriteBytes(I2C_TypeDef *i2c, const uint8_t *data,
     return I2C_WaitSR1(i2c, I2C_SR1_BTF, started, timeout_ms);
 }
 
-/* ADDR must still be set on entry. This function generates STOP. */
+/* Khi vào hàm, cờ ADDR phải còn được đặt; hàm này sẽ tạo STOP. */
 static I2C_Status_t I2C_ReadBytes(I2C_TypeDef *i2c, uint8_t *data,
                                   uint16_t size, uint32_t started,
                                   uint32_t timeout_ms)
@@ -283,7 +274,7 @@ static I2C_Status_t I2C_ReadBytes(I2C_TypeDef *i2c, uint8_t *data,
 
     if (size == 1U)
     {
-        /* RM0008 EV6_3: ACK=0, clear ADDR then STOP atomically. */
+        /* Theo RM0008, EV6_3: Xóa ACK, xóa ADDR rồi tạo STOP liên tiếp, không để ngắt xen vào. */
         i2c->CR1 &= ~I2C_CR1_ACK;
         primask = __get_PRIMASK();
         __disable_irq();
@@ -299,7 +290,7 @@ static I2C_Status_t I2C_ReadBytes(I2C_TypeDef *i2c, uint8_t *data,
 
     if (size == 2U)
     {
-        /* POS and ACK must already be set before ADDR clearing. */
+        /* Phải thiết lập POS và ACK trước khi xóa cờ ADDR. */
         primask = __get_PRIMASK();
         __disable_irq();
         I2C_ClearADDR(i2c);
@@ -318,7 +309,7 @@ static I2C_Status_t I2C_ReadBytes(I2C_TypeDef *i2c, uint8_t *data,
         return I2C_STATUS_OK;
     }
 
-    /* size >= 3. Use BTF for safe clock stretching if CPU is delayed. */
+    /* Khi nhận từ 3 byte: Chờ BTF để phần cứng kéo dài xung SCL an toàn nếu CPU xử lý chậm. */
     I2C_ClearADDR(i2c);
     while (remaining > 3U)
     {
@@ -328,35 +319,35 @@ static I2C_Status_t I2C_ReadBytes(I2C_TypeDef *i2c, uint8_t *data,
         remaining--;
     }
 
-    /* Now exactly 3 bytes remain; N-2 is in DR, N-1 in shift register. */
+    /* Lúc này còn đúng 3 byte; byte N-2 nằm trong DR, byte N-1 nằm trong thanh ghi dịch. */
     s = I2C_WaitSR1(i2c, I2C_SR1_BTF, started, timeout_ms);
     if (s != I2C_STATUS_OK) return s;
 
     i2c->CR1 &= ~I2C_CR1_ACK;
-    *data++ = (uint8_t)i2c->DR; /* N-2, begins shifting N */
+    *data++ = (uint8_t)i2c->DR; /* Đọc byte N-2 để bắt đầu dịch byte N */
 
-    /* ES096 / AN2824 critical section: STOP followed by reading N-1. */
+    /* Đoạn tới hạn theo ES096/AN2824: Tạo STOP, sau đó đọc byte N-1. */
     primask = __get_PRIMASK();
     __disable_irq();
     i2c->CR1 |= I2C_CR1_STOP;
-    *data++ = (uint8_t)i2c->DR; /* N-1 */
+    *data++ = (uint8_t)i2c->DR; /* Byte thứ N-1 */
     __set_PRIMASK(primask);
 
     s = I2C_WaitSR1(i2c, I2C_SR1_RXNE, started, timeout_ms);
     if (s != I2C_STATUS_OK) return s;
-    *data = (uint8_t)i2c->DR; /* N */
+    *data = (uint8_t)i2c->DR; /* Byte thứ N */
     return I2C_STATUS_OK;
 }
 
 static void I2C_PrepareReceive(I2C_TypeDef *i2c, uint16_t size)
 {
-    i2c->CR1 |= I2C_CR1_ACK;     /* Override default for multi-byte RX. */
+    i2c->CR1 |= I2C_CR1_ACK;     /* Tạm bật ACK để nhận nhiều byte, không phụ thuộc cấu hình mặc định. */
     i2c->CR1 &= ~I2C_CR1_POS;
     if (size == 2U) i2c->CR1 |= I2C_CR1_POS;
 }
 
 /* ------------------------------------------------------------------------- */
-/* PUBLIC: peripheral clock and enable                                       */
+/* Public: Cấp xung nhịp và bật/tắt ngoại vi */
 /* ------------------------------------------------------------------------- */
 void I2C_PeriClockControl(I2C_TypeDef *pI2Cx, uint8_t EnorDi)
 {
@@ -391,7 +382,7 @@ void I2C_DeInit(I2C_TypeDef *pI2Cx)
 }
 
 /* ------------------------------------------------------------------------- */
-/* PUBLIC: initialize timing, GPIO, and DWT timebase                        */
+/* Public: Khởi tạo định thời I2C, GPIO và bộ đếm DWT */
 /* ------------------------------------------------------------------------- */
 I2C_Status_t I2C_Init(I2C_Handle_t *pI2CHandle)
 {
@@ -419,18 +410,18 @@ I2C_Status_t I2C_Init(I2C_Handle_t *pI2CHandle)
         pI2CHandle->I2C_Config.I2C_SCLSpeed > 400000U)
         return I2C_STATUS_INVALID_ARG;
 
-    /* The CMSIS function updates HCLK from RCC settings. */
+    /* Hàm CMSIS cập nhật tần số HCLK dựa trên cấu hình RCC hiện tại. */
     SystemCoreClockUpdate();
     if ((SystemCoreClock < 2000000U) || (SystemCoreClock / 1000U == 0U))
         return I2C_STATUS_INVALID_ARG;
 
-    apb1_prescaler = (RCC->CFGR >> 8U) & 7U; /* PPRE1[2:0] */
+    apb1_prescaler = (RCC->CFGR >> 8U) & 7U; /* Các bit PPRE1[2:0] quy định hệ số chia APB1 */
     divider = (apb1_prescaler < 4U) ? 1U : (1UL << (apb1_prescaler - 3U));
     pclk1_hz = SystemCoreClock / divider;
     if (pclk1_hz > 36000000U || pclk1_hz < (fast ? 4000000U : 2000000U))
         return I2C_STATUS_INVALID_ARG;
     if ((pclk1_hz % 1000000U) != 0U)
-        return I2C_STATUS_INVALID_ARG; /* strict MHz setting for CR2.FREQ */
+        return I2C_STATUS_INVALID_ARG; /* Trường CR2.FREQ yêu cầu tần số được xác định theo đơn vị MHz nguyên */
     mhz = pclk1_hz / 1000000U;
 
     duty = pI2CHandle->I2C_Config.I2C_FMDutyCycle;
@@ -452,7 +443,7 @@ I2C_Status_t I2C_Init(I2C_Handle_t *pI2CHandle)
     }
     if (ccr > 0x0FFFU || trise > 63U) return I2C_STATUS_INVALID_ARG;
 
-    /* DWT CYCCNT ticks at HCLK. Does not consume SysTick/TIM2. */
+    /* DWT->CYCCNT tăng theo HCLK, không chiếm tài nguyên SysTick hoặc TIM2. */
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
     if ((DWT->CTRL & DWT_CTRL_CYCCNTENA_Msk) == 0U)
     {
@@ -483,7 +474,7 @@ I2C_Status_t I2C_Init(I2C_Handle_t *pI2CHandle)
 }
 
 /* ------------------------------------------------------------------------- */
-/* PUBLIC: write only                                                        */
+/* Public: Chỉ truyền dữ liệu (ghi) */
 /* ------------------------------------------------------------------------- */
 I2C_Status_t I2C_Master_Transmit(I2C_Handle_t *pI2CHandle,
                                  uint8_t DevAddress, const uint8_t *pData,
@@ -518,7 +509,7 @@ error:
 }
 
 /* ------------------------------------------------------------------------- */
-/* PUBLIC: read only                                                         */
+/* Public: Chỉ nhận dữ liệu (đọc) */
 /* ------------------------------------------------------------------------- */
 I2C_Status_t I2C_Master_Receive(I2C_Handle_t *pI2CHandle,
                                 uint8_t DevAddress, uint8_t *pData,
@@ -553,7 +544,7 @@ error:
 }
 
 /* ------------------------------------------------------------------------- */
-/* PUBLIC: combined W -> repeated START -> R (no intermediate STOP)         */
+/* Public: Ghi–đọc kết hợp, dùng Repeated START (không có STOP giữa hai pha) */
 /* ------------------------------------------------------------------------- */
 I2C_Status_t I2C_Master_WriteRead(I2C_Handle_t *pI2CHandle,
                                   uint8_t DevAddress,
@@ -582,7 +573,7 @@ I2C_Status_t I2C_Master_WriteRead(I2C_Handle_t *pI2CHandle,
     s = I2C_WriteBytes(i2c, pTxData, TxSize, started, TimeoutMs);
     if (s != I2C_STATUS_OK) goto error;
 
-    /* Keep Master ownership; issue repeated START, not STOP. */
+    /* Tiếp tục giữ quyền Master; phát Repeated START thay vì STOP. */
     I2C_PrepareReceive(i2c, RxSize);
     s = I2C_StartAddress(i2c, DevAddress, I2C_READ, started, TimeoutMs);
     if (s != I2C_STATUS_OK) goto error;
@@ -599,7 +590,7 @@ error:
 }
 
 /* ------------------------------------------------------------------------- */
-/* PUBLIC: address-only probe (ACK/NACK)                                     */
+/* Public: Kiểm tra phản hồi ACK/NACK khi gửi địa chỉ */
 /* ------------------------------------------------------------------------- */
 I2C_Status_t I2C_IsDeviceReady(I2C_Handle_t *pI2CHandle,
                                uint8_t DevAddress, uint32_t TimeoutMs)
@@ -629,7 +620,7 @@ error:
 }
 
 /* ------------------------------------------------------------------------- */
-/* PUBLIC: 7-bit address scanner                                             */
+/* Public: Quét các địa chỉ I2C 7 bit */
 /* ------------------------------------------------------------------------- */
 I2C_Status_t I2C_Scan(I2C_Handle_t *pI2CHandle, uint8_t *pAddresses,
                       uint8_t MaxDevices, uint8_t *pFoundCount,
@@ -666,7 +657,7 @@ I2C_Status_t I2C_Scan(I2C_Handle_t *pI2CHandle, uint8_t *pAddresses,
 }
 
 /* ------------------------------------------------------------------------- */
-/* PUBLIC: bus recovery by up to 9 manual SCL pulses and one STOP           */
+/* Public: Khôi phục bus bằng tối đa 9 xung SCL thủ công và một xung STOP */
 /* ------------------------------------------------------------------------- */
 I2C_Status_t I2C_BusRecover(I2C_Handle_t *pI2CHandle)
 {
@@ -690,7 +681,7 @@ I2C_Status_t I2C_BusRecover(I2C_Handle_t *pI2CHandle)
     I2C_PinMode(pins.port, pins.sda, I2C_GPIO_GP_OD_50MHZ);
     I2C_DelayUs(I2C_RECOVERY_PULSE_US);
 
-    /* If SCL is held LOW externally, do not fight the other device. */
+    /* Nếu SCL bị thiết bị bên ngoài giữ ở mức thấp, không cưỡng bức mức cao để tránh xung đột. */
     started = I2C_Now();
     while (!I2C_PinHigh(&pins, pins.scl))
     {
@@ -724,7 +715,7 @@ I2C_Status_t I2C_BusRecover(I2C_Handle_t *pI2CHandle)
 
     if (ok && I2C_PinHigh(&pins, pins.scl) && I2C_PinHigh(&pins, pins.sda))
     {
-        /* Deliberate SDA and SCL transitions also help analog-filter errata. */
+        /* Chủ động tạo các chuyển mức SDA/SCL còn giúp xử lý tình huống liên quan lỗi bộ lọc tương tự. */
         I2C_PinPullLow(&pins, pins.sda);
         I2C_DelayUs(I2C_RECOVERY_PULSE_US);
         I2C_PinPullLow(&pins, pins.scl);
@@ -733,7 +724,7 @@ I2C_Status_t I2C_BusRecover(I2C_Handle_t *pI2CHandle)
         I2C_DelayUs(I2C_RECOVERY_PULSE_US);
         if (I2C_PinHigh(&pins, pins.scl))
         {
-            I2C_PinRelease(&pins, pins.sda); /* STOP: SDA rising while SCL high */
+            I2C_PinRelease(&pins, pins.sda); /* Điều kiện STOP: SDA chuyển từ thấp lên cao khi SCL đang ở mức cao */
             I2C_DelayUs(I2C_RECOVERY_PULSE_US);
         }
         else ok = 0U;
