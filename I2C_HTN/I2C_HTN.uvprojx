@@ -403,11 +403,6 @@
               <FilePath>.\Core\Src\bh1750.c</FilePath>
             </File>
             <File>
-              <FileName>i2c_driver.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Core\Src\i2c_driver.c</FilePath>
-            </File>
-            <File>
               <FileName>oled_fonts.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Core\Src\oled_fonts.c</FilePath>
@@ -431,6 +426,11 @@
               <FileName>sht30.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Core\Src\sht30.c</FilePath>
+            </File>
+            <File>
+              <FileName>i2c_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Core\Src\i2c_driver.c</FilePath>
             </File>
           </Files>
         </Group>

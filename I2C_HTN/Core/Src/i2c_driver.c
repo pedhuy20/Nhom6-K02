@@ -28,6 +28,7 @@ typedef struct
     uint8_t sda;
 } I2C_Pins_t;
 
+
 /* Private : Quản lý Timeout bằng bộ đếm chu kỳ (an toàn khi tràn nếu khoảng chờ < 2^31 chu kỳ)
  */
 
@@ -57,6 +58,7 @@ static void I2C_DelayUs(uint32_t microseconds)
     uint32_t cycles = microseconds * s_cpu_cycles_per_us;
     while ((uint32_t)(I2C_Now() - start) < cycles) { }
 }
+
 
 /* Private : Ánh xạ chân và cấu hình chế độ GPIO */
 
@@ -121,9 +123,10 @@ static void I2C_PinPullLow(const I2C_Pins_t *p, uint8_t pin)
     p->port->BRR = (1UL << pin);
 }
 
+
 /* Private : Kiểm tra lỗi SR1, chờ cờ, tạo STOP và khôi phục ACK */
 
-static I2C_Status_t I2CErrorFromSR1(uint32_t sr1)
+static I2C_Status_t I2C_ErrorFromSR1(uint32_t sr1)
 {
     if ((sr1 & I2C_SR1_ARLO) != 0U) return I2C_STATUS_ARBITRATION_LOST;
     if ((sr1 & I2C_SR1_BERR) != 0U) return I2C_STATUS_BUS_ERROR;
@@ -224,6 +227,7 @@ static uint8_t I2C_ValidAddress(uint8_t addr)
     /* Chỉ chấp nhận địa chỉ 7 bit không thuộc dải địa chỉ dành riêng. */
     return ((addr >= 0x08U) && (addr <= 0x77U)) ? 1U : 0U;
 }
+
 
 /* Private : Phát START và địa chỉ; giữ cờ ADDR để pha nhận kịp cấu hình ACK */
 
@@ -344,6 +348,7 @@ static void I2C_PrepareReceive(I2C_TypeDef *i2c, uint16_t size)
     if (size == 2U) i2c->CR1 |= I2C_CR1_POS;
 }
 
+
 /* Public: Cấp xung nhịp và bật/tắt ngoại vi */
 
 void I2C_PeriClockControl(I2C_TypeDef *pI2Cx, uint8_t EnorDi)
@@ -377,6 +382,7 @@ void I2C_DeInit(I2C_TypeDef *pI2Cx)
         RCC->APB1RSTR &= ~RCC_APB1RSTR_I2C2RST;
     }
 }
+
 
 /* Public: Khởi tạo định thời I2C, GPIO và bộ đếm DWT */
 
@@ -440,7 +446,6 @@ I2C_Status_t I2C_Init(I2C_Handle_t *pI2CHandle)
     if (ccr > 0x0FFFU || trise > 63U) return I2C_STATUS_INVALID_ARG;
 
     /* DWT->CYCCNT tăng theo HCLK, không chiếm tài nguyên SysTick hoặc TIM2. */
-
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
     if ((DWT->CTRL & DWT_CTRL_CYCCNTENA_Msk) == 0U)
     {
@@ -469,6 +474,7 @@ I2C_Status_t I2C_Init(I2C_Handle_t *pI2CHandle)
     i2c->CR1 |= I2C_CR1_PE;
     return I2C_STATUS_OK;
 }
+
 
 /* Public: Chỉ truyền dữ liệu (ghi) */
 
@@ -539,6 +545,7 @@ error:
     return s;
 }
 
+
 /* Public: Ghi–đọc kết hợp, dùng Repeated START (không có STOP giữa hai pha) */
 
 I2C_Status_t I2C_Master_WriteRead(I2C_Handle_t *pI2CHandle,
@@ -583,6 +590,7 @@ error:
     I2C_Abort(pI2CHandle, started, TimeoutMs);
     return s;
 }
+
 
 /* Public: Kiểm tra phản hồi ACK/NACK khi gửi địa chỉ */
 
@@ -676,7 +684,6 @@ I2C_Status_t I2C_BusRecover(I2C_Handle_t *pI2CHandle)
     I2C_DelayUs(I2C_RECOVERY_PULSE_US);
 
     /* Nếu SCL bị thiết bị bên ngoài giữ ở mức thấp, không ép lên mức cao để tránh xung đột. */
-    
     started = I2C_Now();
     while (!I2C_PinHigh(&pins, pins.scl))
     {
