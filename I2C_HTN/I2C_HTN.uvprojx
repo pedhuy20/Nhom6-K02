@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\Core\Inc;.\Core\Src;.\Core\Src;.\Core\Inc</IncludePath>
+              <IncludePath>.\Core\Src;.\Core\Inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -385,17 +385,17 @@
             <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Src\main.c</FilePath>
+              <FilePath>.\Core\Src\main.c</FilePath>
             </File>
             <File>
               <FileName>gpio.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Src\gpio.c</FilePath>
+              <FilePath>.\Core\Src\gpio.c</FilePath>
             </File>
             <File>
               <FileName>rcc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Src\rcc.c</FilePath>
+              <FilePath>.\Core\Src\rcc.c</FilePath>
             </File>
             <File>
               <FileName>bh1750.c</FileName>
@@ -436,6 +436,53 @@
         </Group>
         <Group>
           <GroupName>Drivers</GroupName>
+          <Files>
+            <File>
+              <FileName>bh1750.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Core\Inc\bh1750.h</FilePath>
+            </File>
+            <File>
+              <FileName>gpio.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Core\Inc\gpio.h</FilePath>
+            </File>
+            <File>
+              <FileName>i2c_driver.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Core\Inc\i2c_driver.h</FilePath>
+            </File>
+            <File>
+              <FileName>oled_fonts.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Core\Inc\oled_fonts.h</FilePath>
+            </File>
+            <File>
+              <FileName>oled_graphics.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Core\Inc\oled_graphics.h</FilePath>
+            </File>
+            <File>
+              <FileName>oled_sh1106.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Core\Inc\oled_sh1106.h</FilePath>
+            </File>
+            <File>
+              <FileName>oled_tests.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Core\Inc\oled_tests.h</FilePath>
+            </File>
+            <File>
+              <FileName>rcc.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Core\Inc\rcc.h</FilePath>
+            </File>
+            <File>
+              <FileName>sht30.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Core\Inc\sht30.h</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>::CMSIS</GroupName>
