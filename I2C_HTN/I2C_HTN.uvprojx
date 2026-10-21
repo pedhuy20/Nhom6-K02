@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\Inc;.\Src;.\Core\Src;.\Core\Inc</IncludePath>
+              <IncludePath>.\Core\Inc;.\Core\Src;.\Core\Src;.\Core\Inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
