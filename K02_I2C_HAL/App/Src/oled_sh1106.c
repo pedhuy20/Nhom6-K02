@@ -1,4 +1,4 @@
-#include "oled_ssd1306.h"
+#include "oled_sh1106.h"
 #include "oled_graphics.h"
 #include <stddef.h>
 

@@ -27,7 +27,7 @@ k02_i2c_hal/sv4_app.o: ..\App\Src\sv4_app.c ..\Core\Inc\main.h \
   ..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_i2c.h \
   ..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_pwr.h \
   ..\App\Inc\sv4_app.h ..\App\Inc\i2c_driver.h ..\App\Inc\sht30.h \
-  ..\App\Inc\i2c_driver.h ..\App\Inc\bh1750.h ..\App\Inc\oled_ssd1306.h \
+  ..\App\Inc\i2c_driver.h ..\App\Inc\bh1750.h ..\App\Inc\oled_sh1106.h \
   ..\App\Inc\oled_graphics.h ..\App\Inc\oled_fonts.h \
   D:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdio.h \
   D:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdarg.h

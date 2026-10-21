@@ -1,34 +1,22 @@
-/*
- * SV4 HAL - HSI 8 MHz, I2C1 100 kHz, SH1106 128x64.
- * Nut PB0--GND: moi lan nhan chuyen 1 -> 2 -> 3 -> 1, chong doi 30 ms.
- * Ba trang va kiem tra ket noi nen giong ban thanh ghi da cap nhat.
- * Frame chi do OLED_Update() thanh cong bang DWT; khong min/max/mean/uptime.
- * Khong LED PC13, khong trang loi rieng, khong doi trang tu dong.
- * SV2/SV3 giu nguyen source; i2c_driver.c nay chuyen loi goi sang HAL.
- * Quet 0x08..0x77, mot lan thu/dia chi, timeout 3 ms; khong cho 5 giay.
- * SysTick phai chay cho timeout HAL. DWT dung rieng de do Frame va xung recovery.
- * Watch: g_sv4.loop_count, recover_attempts, recover_ok, oled_last_us,
- *        bus_status, scan_status, sht30.valid, bh1750.valid, oled.valid.
- */
+
 #include "main.h"
 #include "sv4_app.h"
 #include "i2c_driver.h"
 #include "sht30.h"
 #include "bh1750.h"
-#include "oled_ssd1306.h"
+#include "oled_sh1106.h"
 #include "oled_graphics.h"
 #include <stdio.h>
 #include <stdarg.h>
 
-
-#define SV4_CLOCK_HZ           8000000UL
+#define SV4_CLOCK_HZ          8000000UL
 #define SENSOR_PERIOD_MS      1000UL
 #define CONNECTION_PERIOD_MS  200UL
 #define CONNECTION_TIMEOUT_MS 3UL
 #define DISPLAY_PERIOD_MS     250UL
 #define RETRY_MS              1000UL
 #define BUTTON_DEBOUNCE_MS    30UL
-#define SCAN_CAPACITY         112U       /* 0x08..0x77 */
+#define SCAN_CAPACITY         112U       
 
 typedef struct
 {
@@ -59,7 +47,6 @@ static const uint8_t device_addresses[] =
 static uint8_t button_raw = 1U, button_stable = 1U;
 static uint32_t button_changed_at;
 
-/* SysTick cua HAL van chay de moi giao dich co timeout huu han. */
 static uint32_t Now(void)
 {
     g_sv4_ms = HAL_GetTick();
@@ -100,7 +87,6 @@ static void Button_Task(uint32_t now)
     }
 }
 
-/* Kiem tra giua cac giao dich, ca chan vat ly va trang thai HAL. */
 static uint8_t BusIsStuck(void)
 {
     return (uint8_t)(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_6) == GPIO_PIN_RESET ||
@@ -123,7 +109,7 @@ static uint8_t Bus_Task(uint32_t now)
     if (Due(now, recover_due) == 0U) return 0U;
 
     g_sv4.recover_attempts++;
-    /* Adapter HAL tu khoi tao lai I2C sau khi tha bus. */
+
     g_sv4.bus_status = I2C_BusRecover(bus);
     recover_due = Now() + RETRY_MS;
     if (g_sv4.bus_status != I2C_STATUS_OK) return 0U;
@@ -133,7 +119,7 @@ static uint8_t Bus_Task(uint32_t now)
     return 1U;
 }
 
-/* ACK duoc kiem tra o nen; chi doc du lieu hop le moi cho valid = 1. */
+
 static void Connection_Task(uint32_t now)
 {
     if (Due(now, connection_due) == 0U) return;
@@ -171,7 +157,7 @@ static void SHT_Task(uint32_t now)
     }
     else
     {
-        status = SHT30_DocDuLieu(bus, &data); /* SV2 xu ly CRC va doi don vi. */
+        status = SHT30_DocDuLieu(bus, &data); 
         sht_pending = 0U;
         sht_due = Now() + SENSOR_PERIOD_MS;
         if (status == SHT30_THANH_CONG)
@@ -211,7 +197,7 @@ static void BH_Task(uint32_t now)
     g_sv4.bh1750.valid = (uint8_t)(status == BH1750_THANH_CONG);
 }
 
-/* Gom snprintf va ham ve SV3 de cac dong giao dien ngan, gioi han 21 ky tu. */
+
 static uint16_t Text(uint8_t row, const char *format, ...)
 {
     char line[22];
@@ -222,7 +208,7 @@ static uint16_t Text(uint8_t row, const char *format, ...)
     return OLED_DrawText(0, (int16_t)(row * 8U), line, &OLED_FONT_5X7, OLED_WHITE);
 }
 
-/* Khong can bat printf float cua Keil; chi goi mot lan trong moi Text(). */
+
 static const char *Number(float value)
 {
     static char out[16];
@@ -313,7 +299,7 @@ static void OLED_Task(uint32_t now)
         DrawPage(now);
         start = DWT->CYCCNT;
         status = OLED_Update();
-        elapsed = DWT->CYCCNT - start; /* Chi do Update, khong gom ve/thong ke. */
+        elapsed = DWT->CYCCNT - start; 
         if (status == OLED_OK)
         {
             g_sv4.oled_last_us = elapsed / (SV4_CLOCK_HZ / 1000000UL);
@@ -346,9 +332,7 @@ void SV4_Task(void)
                                      &scan_count, 3UL);
         if (g_sv4.scan_status != I2C_STATUS_OK) { bus_ready = 0U; return; }
         scan_found = scan_count;
-        /* Giu ten va dia chi da cau hinh de van hien ERROR khi vang mat.
-         * Found van la so ACK that cua lan quet, khong dem cac muc bo sung.
-         */
+      
         for (i = 0U; i < sizeof(device_addresses); i++)
         {
             for (j = 0U; j < scan_count; j++)
@@ -370,7 +354,7 @@ void SV4_Init(I2C_HandleTypeDef *i2c)
         g_sv4.fatal_code = 1U;
         return;
     }
-    Time_Init(); /* Chi bat DWT, KHONG tat SysTick cua HAL. */
+    Time_Init(); 
     button_changed_at = Now();
     g_sv4.bus_status = HAL_I2C_GetState(bus) == HAL_I2C_STATE_READY ?
                           I2C_STATUS_OK : I2C_STATUS_BUSY;

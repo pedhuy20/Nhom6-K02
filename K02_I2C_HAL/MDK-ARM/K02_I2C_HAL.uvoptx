@@ -419,7 +419,7 @@
 
   <Group>
     <GroupName>Application/SV4_HAL</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -478,8 +478,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>../App/Src/oled_ssd1306.c</PathWithFileName>
-      <FilenameWithoutPath>oled_ssd1306.c</FilenameWithoutPath>
+      <PathWithFileName>../App/Src/oled_graphics.c</PathWithFileName>
+      <FilenameWithoutPath>oled_graphics.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -490,8 +490,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>../App/Src/oled_graphics.c</PathWithFileName>
-      <FilenameWithoutPath>oled_graphics.c</FilenameWithoutPath>
+      <PathWithFileName>../App/Src/oled_fonts.c</PathWithFileName>
+      <FilenameWithoutPath>oled_fonts.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -502,8 +502,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>../App/Src/oled_fonts.c</PathWithFileName>
-      <FilenameWithoutPath>oled_fonts.c</FilenameWithoutPath>
+      <PathWithFileName>..\App\Src\oled_sh1106.c</PathWithFileName>
+      <FilenameWithoutPath>oled_sh1106.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>

@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xB</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include;../App/Inc</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include;../App/Inc;..\App\Src</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -508,11 +508,6 @@
               <FilePath>../App/Src/bh1750.c</FilePath>
             </File>
             <File>
-              <FileName>oled_ssd1306.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../App/Src/oled_ssd1306.c</FilePath>
-            </File>
-            <File>
               <FileName>oled_graphics.c</FileName>
               <FileType>1</FileType>
               <FilePath>../App/Src/oled_graphics.c</FilePath>
@@ -521,6 +516,11 @@
               <FileName>oled_fonts.c</FileName>
               <FileType>1</FileType>
               <FilePath>../App/Src/oled_fonts.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled_sh1106.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\App\Src\oled_sh1106.c</FilePath>
             </File>
           </Files>
         </Group>
