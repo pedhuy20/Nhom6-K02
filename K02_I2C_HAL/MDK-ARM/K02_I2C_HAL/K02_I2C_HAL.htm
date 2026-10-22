@@ -3,11 +3,11 @@
 <title>Static Call Graph - [K02_I2C_HAL\K02_I2C_HAL.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image K02_I2C_HAL\K02_I2C_HAL.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6130100: Last Updated: Wed Oct 21 17:42:53 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6130100: Last Updated: Thu Oct 22 11:57:21 2026
 <BR><P>
-<H3>Maximum Stack Usage =        328 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
+<H3>Maximum Stack Usage =        324 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
-__rt_entry_main &rArr; main &rArr; SV4_Task &rArr; OLED_Init &rArr; OLED_SendFramebuffer &rArr; OLED_WriteCommands &rArr; OLED_WriteCommand &rArr; I2C_Master_Transmit &rArr; HAL_I2C_Master_Transmit &rArr; I2C_WaitOnMasterAddressFlagUntilTimeout
+_printf_f &rArr; _printf_fp_dec &rArr; _printf_fp_dec_real &rArr; _fp_digits &rArr; _btod_etento &rArr; _btod_emul &rArr; _e2e
 <P>
 <H3>
 Functions with no stack information
@@ -371,7 +371,7 @@ Global Symbols
 <P><STRONG><a name="[11c]"></a>__rt_entry_postsh_1</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, __rtentry2.o(.ARM.Collect$$rtentry$$00000009))
 
 <P><STRONG><a name="[6c]"></a>__rt_entry_main</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, __rtentry2.o(.ARM.Collect$$rtentry$$0000000D))
-<BR><BR>[Stack]<UL><LI>Max Depth = 328 + Unknown Stack Size
+<BR><BR>[Stack]<UL><LI>Max Depth = 320 + Unknown Stack Size
 <LI>Call Chain = __rt_entry_main &rArr; main &rArr; SV4_Task &rArr; OLED_Init &rArr; OLED_SendFramebuffer &rArr; OLED_WriteCommands &rArr; OLED_WriteCommand &rArr; I2C_Master_Transmit &rArr; HAL_I2C_Master_Transmit &rArr; I2C_WaitOnMasterAddressFlagUntilTimeout
 </UL>
 <BR>[Calls]<UL><LI><a href="#[6d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -1358,8 +1358,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[6d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[da]"></a>SV4_Task</STRONG> (Thumb, 1620 bytes, Stack size 64 bytes, sv4_app.o(.text.SV4_Task))
-<BR><BR>[Stack]<UL><LI>Max Depth = 304 + Unknown Stack Size
+<P><STRONG><a name="[da]"></a>SV4_Task</STRONG> (Thumb, 1560 bytes, Stack size 56 bytes, sv4_app.o(.text.SV4_Task))
+<BR><BR>[Stack]<UL><LI>Max Depth = 296 + Unknown Stack Size
 <LI>Call Chain = SV4_Task &rArr; OLED_Init &rArr; OLED_SendFramebuffer &rArr; OLED_WriteCommands &rArr; OLED_WriteCommand &rArr; I2C_Master_Transmit &rArr; HAL_I2C_Master_Transmit &rArr; I2C_WaitOnMasterAddressFlagUntilTimeout
 </UL>
 <BR>[Calls]<UL><LI><a href="#[a0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_ReadPin
@@ -1416,7 +1416,7 @@ Global Symbols
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f103xb.o(RESET)
 </UL>
 <P><STRONG><a name="[6d]"></a>main</STRONG> (Thumb, 140 bytes, Stack size 24 bytes, main.o(.text.main))
-<BR><BR>[Stack]<UL><LI>Max Depth = 328 + Unknown Stack Size
+<BR><BR>[Stack]<UL><LI>Max Depth = 320 + Unknown Stack Size
 <LI>Call Chain = main &rArr; SV4_Task &rArr; OLED_Init &rArr; OLED_SendFramebuffer &rArr; OLED_WriteCommands &rArr; OLED_WriteCommand &rArr; I2C_Master_Transmit &rArr; HAL_I2C_Master_Transmit &rArr; I2C_WaitOnMasterAddressFlagUntilTimeout
 </UL>
 <BR>[Calls]<UL><LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemClock_Config

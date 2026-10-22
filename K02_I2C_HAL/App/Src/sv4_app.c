@@ -220,37 +220,42 @@ static const char *Number(float value)
     return out;
 }
 
-static void DrawPage(uint32_t now)
+static void DrawPage(void)
 {
-    uint8_t i, index, group, groups;
+    uint8_t i;
     const char *name;
     const char *state;
     int16_t x;
-    if (g_sv4_page == 1U)
+   if (g_sv4_page == 1U)
+{
+    Text(0U, "1/3 I2C ADDRESSES");
+
+    Text(1U, "Found:%u (last scan)",
+         (unsigned int)scan_found);
+
+    for (i = 0U; i < scan_count && i < 3U; i++)
     {
-        Text(0U, "1/3 I2C ADDRESSES");
-        Text(1U, "Found:%u (last scan)", (unsigned int)scan_found);
-        groups = (uint8_t)((scan_count + 3U) / 4U);
-        group = groups > 1U ? (uint8_t)((now / 2500UL) % groups) : 0U;
-        for (i = 0U; i < 4U; i++)
-        {
-            index = (uint8_t)(group * 4U + i);
-            if (index >= scan_count) break;
-            name = scan_addresses[index] == SHT30_DIA_CHI ? "SHT30" :
-                   scan_addresses[index] == BH1750_DIA_CHI ? "BH1750" :
-                   scan_addresses[index] == OLED_I2C_ADDRESS ? "OLED SH1106" : "Unknown";
-            state = "";
-            if (scan_addresses[index] == SHT30_DIA_CHI)
-                state = g_sv4.sht30.valid ? " OK" : " ERROR";
-            else if (scan_addresses[index] == BH1750_DIA_CHI)
-                state = g_sv4.bh1750.valid ? " OK" : " ERROR";
-            Text((uint8_t)(i + 2U), "%s:0x%02X%s", name,
-                 (unsigned int)scan_addresses[index], state);
-        }
-        if (scan_count == 0U) Text(2U, "No device found");
-        if (groups > 1U) Text(7U, "List:%u/%u", (unsigned int)(group + 1U),
-                              (unsigned int)groups);
+        name = scan_addresses[i] == SHT30_DIA_CHI ? "SHT30" :
+               scan_addresses[i] == BH1750_DIA_CHI ? "BH1750" :
+               scan_addresses[i] == OLED_I2C_ADDRESS ? "OLED SH1106" : "Unknown";
+
+        state = "";
+
+        if (scan_addresses[i] == SHT30_DIA_CHI)
+            state = g_sv4.sht30.valid ? " OK" : " ERROR";
+
+        else if (scan_addresses[i] == BH1750_DIA_CHI)
+            state = g_sv4.bh1750.valid ? " OK" : " ERROR";
+
+        Text((uint8_t)(i + 2U), "%s:0x%02X%s",
+             name,
+             (unsigned int)scan_addresses[i],
+             state);
     }
+
+    if (scan_count == 0U)
+        Text(2U, "No device found");
+}
     else if (g_sv4_page == 2U)
     {
         Text(0U, "2/3 SENSOR VALUES");
@@ -296,7 +301,7 @@ static void OLED_Task(uint32_t now)
     else
     {
         OLED_Clear();
-        DrawPage(now);
+        DrawPage();
         start = DWT->CYCCNT;
         status = OLED_Update();
         elapsed = DWT->CYCCNT - start; 
